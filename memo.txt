@@ -1,0 +1,23 @@
+祝日
+
+ユーザID
+登録日付
+出勤区分	1：休暇、2：休日出勤
+
+チケットID
+予定日数
+累積日数
+実績開始日
+稼働日数
+中断日数
+実績日数
+実績終了日
+超過日数
+表示順
+
+
+
+ruby bin/rails generate redmine_plugin       BrokenDownWorks
+ruby bin/rails generate redmine_plugin_model BrokenDownWorks broken_down_work user_id:integer yyyy:string mm:string dd:string bo_time:string eo_time:string issue_id:integer activity_id:integer comments:string
+bundle exec rake redmine:plugins:migrate
+ruby bin/rails generate redmine_plugin_controller BrokenDownWorks broken_down_work index regist

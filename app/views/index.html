@@ -1,0 +1,511 @@
+<%= stylesheet_link_tag 'daily_report', :plugin => 'daily_report' %>
+
+<link rel="stylesheet" media="all" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+
+<style>
+	* {
+		font-size: small;
+	}
+
+	table {
+		border-spacing: 0;
+		border-left: solid 1px #ccc;
+		width: max-content;
+	}
+	thead th, thead td, tfoot th, tfoot td {
+		border-top: solid 1px #ccc;
+	}
+	tbody {
+		background-color: #eee;
+	}
+	tbody tr:nth-child(1) {
+		display: none;
+	}
+
+	th, td {
+		border-bottom: solid 1px #ccc;
+		border-right: solid 1px #ccc;
+		height: 24px;
+		white-space: nowrap;
+	}
+	th {
+		background-color: #dfd;
+		font-weight: normal;
+	}
+	td {
+		background-color: #fff;
+	}
+	td * {
+		width: -webkit-fill-available;
+	}
+	thead td {
+		background-color: #dfd;
+		height: 60px;
+		text-align: center;
+	}
+	tfoot td {
+		background-color: #dfd;
+		text-align: center;
+	}
+
+	table.left {
+		float: left;
+	}
+	table.left thead, table.left tbody, table.left tfoot {
+		display: block;
+		overflow-x: hidden;
+		overflow-y: hidden;
+	}
+	table.left th, table.left td {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	/* # */
+	table.left tr th:nth-child(1) {
+		min-width: 3rem;
+		max-width: 3rem;
+	}
+	/* プロジェクト */
+	table.left tr td:nth-child(2) {
+		min-width: 8rem;
+		max-width: 8rem;
+	}
+	/* フェーズ */
+	table.left tr td:nth-child(3) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 題名 */
+	table.left tr td:nth-child(4) {
+		min-width: 15rem;
+		max-width: 15rem;
+	}
+	/* ステータス */
+	table.left tr td:nth-child(5) {
+		min-width: 7rem;
+		max-width: 7rem;
+	}
+	/* 担当者 */
+	table.left tr td:nth-child(6) {
+		min-width: 4rem;
+		max-width: 4rem;
+	}
+	/* 予定開始日 */
+	table.left tr td:nth-child(7) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 予定終了日 */
+	table.left tr td:nth-child(8) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 進捗率 */
+	table.left tr td:nth-child(9) {
+		min-width: 3rem;
+		max-width: 3rem;
+	}
+	/* 予定日数 */
+	table.left tr td:nth-child(10) {
+		min-width: 3rem;
+		max-width: 3rem;
+	}
+	/* 累積日数 */
+	table.left tr td:nth-child(11) {
+		min-width: 3rem;
+		max-width: 3rem;
+	}
+	/* 実績開始日 */
+	table.left tr td:nth-child(12) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 稼働日数 */
+	table.left tr td:nth-child(13) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 中断日数 */
+	table.left tr td:nth-child(14) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 実績日数 */
+	table.left tr td:nth-child(15) {
+		min-width: 3rem;
+		max-width: 3rem;
+	}
+	/* 実績終了日 */
+	table.left tr td:nth-child(16) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 超過日数 */
+	table.left tr td:nth-child(17) {
+		min-width: 4rem;
+		max-width: 4rem;
+	}
+
+	div.rightWrapper {
+		overflow-x: scroll;
+		overflow-y: scroll;
+	}
+	table.right thead td {
+		position: sticky;
+		top: 0;
+		left: 0;
+		writing-mode: vertical-rl;
+		text-orientation: sideways-right;
+		font-size: xx-small;
+		height: 56px;
+	}
+	table.right td {
+		width: 20px;
+	}
+	table.right tfoot td {
+		position: sticky;
+		bottom: 0;
+		left: 0;
+	}
+	table.right tbody tr:last-child td {
+		border-bottom-style: none;
+	}
+
+	.holiday {
+		background-color: #fee;
+	}
+
+	.plan {
+		background-color: #eef;
+	}
+
+	.panelWrapper {
+		position: relative;
+	}
+
+	.panel {
+		position: absolute;
+		background-color: lightyellow;
+		width: 98%;
+		border-radius: 5px;
+		border: solid 1px #ccc;
+		margin-top: -1px;
+		opacity: 0.5;
+		font-size: small;
+	}
+</style>
+
+<script type="text/javascript">
+	var months = 3;
+	var data = dummyData();
+
+	$(function() {
+
+		//基準日の初期表示
+		var date = new Date();
+		$('[name="baseYmd"]').val(date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2));
+
+		//横軸：日付の表示
+		var baseYmd = new Date(Date.parse($('[name="baseYmd"]').val()));
+		var theadTds = '';
+		var tbodyTds = '';
+		var tfootTds = '';
+		for (var i = 0; true; i++) {
+
+			//日付の取得
+			var date = new Date(baseYmd.getFullYear(), baseYmd.getMonth(), baseYmd.getDate());
+			date.setDate(date.getDate() + i);
+
+			//３カ月分で終了
+			var baseYm = baseYmd.getFullYear() * 100 + baseYmd.getMonth();
+			var ym = date.getFullYear() * 100 + date.getMonth();
+			if (ym - baseYm >= months) {
+				break;
+			}
+
+			//休日の背景色
+			var classHoliday = '';
+			var day = date.getDay();
+			if (day == 0 || day == 6) {
+				classHoliday = ' class=\'holiday\'';
+			}
+
+			//セル文字列に退避
+			theadTds += '<td' + classHoliday + '>' + yySmmSdd(date) + '</td>';
+			tbodyTds += '<td id="' + yySmmSdd(date) + '[#]"' + classHoliday + '>&nbsp;</td>';
+			tfootTds += '<td id="' + yySmmSdd(date) + '"' + classHoliday + '>&nbsp;</td>';
+		}
+
+		//退避したセル文字列を追加
+		$('table.right thead tr').append(theadTds);
+		$('table.right tbody tr').append(tbodyTds);
+		$('table.right tfoot tr').append(tfootTds);
+
+		//縦軸：データの表示
+		var $leftTbody = $('table.left tbody');
+		var leftTbodyHtml = $leftTbody.html();
+		var leftTrs = '';
+		var $rightTbody = $('table.right tbody');
+		var rightTbodyHtml = $rightTbody.html();
+		var rightTrs = '';
+		for (var r in data) {
+			var item = data[r];
+
+			//行文字列を追加
+			leftTrs += leftTbodyHtml.replaceAll('#', item.id);
+			rightTrs += rightTbodyHtml.replaceAll('#', item.id);
+
+			//行文字列内のデータ部分を置換
+			for (var k in item) {
+				leftTrs = leftTrs.replaceAll('\[\[' + k + '\]\]', item[k]);
+			}
+		}
+		$leftTbody.append(leftTrs);
+		$rightTbody.append(rightTrs);
+
+		$('.dec2').each(function() {
+			dec2(this);
+		});
+
+		//予定期間の背景色
+		for (var r in data) {
+			var item = data[r];
+			var id = item.id;
+			var startDate = parseYySmmSdd(item.startDate);
+			var dueDate = parseYySmmSdd(item.dueDate);
+			for (var date = startDate; date <= dueDate; date.setDate(date.getDate() + 1)) {
+				var cell = $('table.right tbody [id="' + yySmmSdd(date) + '[' + id + ']"]');
+				if (!cell.hasClass('holiday')) {
+					cell.addClass('plan');
+				}
+			}
+		}
+
+		//実績期間の描画
+		$('.panelWrapper').remove();
+		var theadHeight = $('table.right thead')[0].offsetHeight;
+		var $rightTbodyFirstTr = $('table.right tbody tr:nth-child(1)');
+		for (var r in data) {
+			var item = data[r];
+			var id = item.id;
+			var $boDateCell = $('table.right tbody [id="' + item.boDate + '[' + id + ']"]');
+			var l = $boDateCell[0].offsetLeft;
+			var t = $boDateCell[0].offsetTop - theadHeight;
+			var $eoDateCell = $('table.right tbody [id="' + item.eoDate + '[' + id + ']"]');
+			var h = $eoDateCell[0].offsetHeight - 1;
+			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - 2;
+			var panel = '<div id="panel_' + id + '" class="panel" style="height: ' + h + 'px; width: ' + w + 'px;"></div>';
+			var panelWrapper = '<div id="panel_' + id + '" class="panelWrapper" style="left: ' + l + 'px; top: ' + t + 'px;">' + panel + '</div>';
+			$rightTbodyFirstTr.after(panelWrapper);
+		}
+
+		// //幅調整
+		// var offsetWidth = $('body')[0].offsetWidth;
+		// var offsetLeft = $('table.left')[0].offsetLeft + $('table.left')[0].offsetWidth;
+		// $('div.rightWrapper').css('width', offsetWidth - offsetLeft);
+
+		//高さ調整
+		var offsetHeight = $('body')[0].clientHeight;
+		var offsetTop = $('table.left')[0].offsetTop;
+		var theadHeight = $('table.left thead')[0].offsetHeight;
+		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
+		$('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
+		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+
+		/**
+		 * スクロール連携
+		 */
+		$('div.rightWrapper').on('scroll', function() {
+			$('table.left tbody').scrollTop(this.scrollTop);
+		});
+	});
+
+	function dummyData() {
+
+		var startDate = new Date();
+		var dueDate = new Date();
+		var boDate = new Date();
+		var eoDate = new Date();
+		var cumuloManDay = 0;
+
+		var dummyData = [];
+		for (var r = 0; r < 100; r++) {
+
+			var user = r % 5;
+
+			var days = (r % 9) * 0.5;
+			var suspends = days / 2;
+			dueDate.setDate(startDate.getDate() + days);
+			eoDate.setDate(boDate.getDate() + Math.ceil(days + suspends));
+
+			var planDays = parseInt((dueDate - startDate) / 1000 / 60 / 60 / 24) + 1;
+
+			var exceeds = parseInt((eoDate - dueDate) / 1000 / 60 / 60 / 24);
+
+			var id = 1000 + r;
+			dummyData[r] = {
+				id : id,
+				projectName : 'project ' + id,
+				phaseName : 'phase ' + id,
+				subject : 'subject ' + id,
+				statusId : 'statusId ' + id,
+				assignedName : 'user' + user,
+				startDate : yySmmSdd(startDate),
+				dueDate : yySmmSdd(dueDate),
+				doneRatio : '100%',
+				planDays : planDays,
+				cumuloManDay : 0,
+				boDate : yySmmSdd(boDate),
+				days : days + 1,
+				suspends : suspends,
+				manDays : days + 1 + suspends,
+				eoDate : yySmmSdd(eoDate),
+				exceeds : exceeds,
+			};
+
+			startDate.setDate(startDate.getDate() + days);
+		}
+		return dummyData;
+	}
+
+	function parseYySmmSdd(yySmmSdd) {
+		var ymds = yySmmSdd.split('/');
+		return new Date(2000 + ymds[0] * 1, ymds[1] - 1, ymds[2]);
+	}
+
+	function yySmmSdd(date) {
+		var yyyy = date.getFullYear();
+		var yy = yyyy - 2000;
+		var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+		var dd = ('0' + date.getDate()).slice(-2);
+		return yy + '/' + mm + '/' + dd;
+	}
+
+	function yymmdd(date) {
+		var yyyy = date.getFullYear();
+		var yy = yyyy - 2000;
+		var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+		var dd = ('0' + date.getDate()).slice(-2);
+		return '' + yy + mm + dd;
+	}
+
+	function dec2(element) {
+		var $dec2 = $(element);
+		$dec2.css('text-align', 'right');
+		var isInput = $dec2.prop('tagName') == 'INPUT';
+		var val;
+		if (isInput) {
+			val = $dec2.val();
+		} else {
+			val = $dec2.html();
+		}
+		var isNumber = !isNaN(val);
+		if (isNumber) {
+			val = Number(val).toFixed(2).toLocaleString();
+			if (isInput) {
+				$dec2.val(val);
+			} else {
+				$dec2.html(val);
+			}
+		}
+	}
+</script>
+
+<h2>BrokenDownWorks</h2>
+<form>
+	<label>基準日
+		<input type="date" name="baseYmd" />
+	</label>
+</form>
+<table class="left">
+	<thead>
+		<tr>
+			<th>id</th>
+			<td>プロジェクト</td>
+			<td>フェーズ</td>
+			<td>題名</td>
+			<td>ステータス</td>
+			<td>担当者</td>
+			<td>予定開始日</td>
+			<td>予定終了日</td>
+			<td>進捗率</td>
+			<td>予定
+			<br>
+			日数</td>
+			<td>累積
+			<br>
+			日数</td>
+			<td>実績開始日</td>
+			<td>稼働日数</td>
+			<td>中断日数</td>
+			<td>実績
+			<br>
+			日数</td>
+			<td>実績終了日</td>
+			<td>超過日数</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th title="[[id]]">[[id]]</th>
+			<td title="[[projectName]]">[[projectName]]</td>
+			<td title="[[phaseName]]">[[phaseName]]</td>
+			<td title="[[subject]]">[[subject]]</td>
+			<td title="[[statusId]]">[[statusId]]</td>
+			<td title="[[assignedName]]">[[assignedName]]</td>
+			<td title="[[startDate]]">[[startDate]]</td>
+			<td title="[[dueDate]]">[[dueDate]]</td>
+			<td title="[[doneRatio]]">[[doneRatio]]</td>
+			<td title="[[planDays]]" class="dec2">[[planDays]]</td>
+			<td title="[[cumuloManDay]]" class="dec2">[[cumuloManDay]]</td>
+			<td title="[[boDate]]">[[boDate]]</td>
+			<td>
+			<input type="number" name="days[#]" step="0.25" value="[[days]]" />
+			</td>
+			<td>
+			<input type="number" name="suspends[#]" step="0.25" value="[[suspends]]" />
+			</td>
+			<td title="[[manDays]]" class="dec2">[[manDays]]</td>
+			<td title="[[eoDate]]">[[eoDate]]</td>
+			<td title="[[exceeds]]">[[exceeds]]</td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<tr>
+			<th>&nbsp;</th>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+		</tr>
+	</tfoot>
+</table>
+<div class="rightWrapper">
+	<table class="right">
+		<thead>
+			<tr></tr>
+		</thead>
+		<tbody>
+			<tr></tr>
+		</tbody>
+		<tfoot>
+			<tr></tr>
+		</tfoot>
+	</table>
+</div>
