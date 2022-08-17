@@ -268,22 +268,42 @@
 			$('table.left tbody').scrollTop(this.scrollTop);
 		});
 		
+		/**
+		 * 日数変更イベント
+		 */
 		$(document).on('change', '[name^="days"], [name^="suspends"]', function() {
 
+			// 入力値をデータに反映
 			var names = this.name.split(/\[|\]/g);
-			var thisId = names[1]; // 1000
-			var thisItem = data[thisId]; // { id: 1000, days: 1, }
+			var thisItem = data[names[1]];
 			thisItem[names[0]] = this.value;
 			
+			var cumuloManDay;
+			
+			// 対象のユーザを取得
 			var assignedName = thisItem.assignedName;
 			for (var id in data) {
 				var item = data[id];
+				
+				// 対象ユーザの行だけ実積調整
 				if (item.assignedName == assignedName) {
+					
+					if (!cumuloManDay) {
+						cumuloManDay = item.cumuloManDay * 1;
+					} else {
+						item.cumuloManDay = cumuloManDay;
+					}
+					
 					var days = item.days * 1;
 					var suspends = item.suspends * 1;
+					var manDays = days + suspends;
 					var boDate = parseYySmmSdd(item.boDate);
-					boDate.setDate(boDate.getDate() + days + suspends - 1);
+					boDate.setDate(boDate.getDate() + manDays - 1);
+					
+					item.manDays = manDays;
 					item.eoDate = yySmmSdd(boDate);
+					
+					cumuloManDay += manDays;
 				}
 			}
 			
