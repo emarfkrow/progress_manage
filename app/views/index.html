@@ -246,12 +246,63 @@
 		$('table.right tfoot tr').append(tfootTds);
 
 		//縦軸：データの表示
+		bindData(data);
+
+		// //幅調整
+		// var offsetWidth = $('body')[0].offsetWidth;
+		// var offsetLeft = $('table.left')[0].offsetLeft + $('table.left')[0].offsetWidth;
+		// $('div.rightWrapper').css('width', offsetWidth - offsetLeft);
+
+		//高さ調整
+		var offsetHeight = $('body')[0].clientHeight;
+		var offsetTop = $('table.left')[0].offsetTop;
+		var theadHeight = $('table.left thead')[0].offsetHeight;
+		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
+		$('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
+		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+
+		/**
+		 * スクロール連携
+		 */
+		$('div.rightWrapper').on('scroll', function() {
+			$('table.left tbody').scrollTop(this.scrollTop);
+		});
+		
+		$(document).on('change', '[name^="days"], [name^="suspends"]', function() {
+
+			var names = this.name.split(/\[|\]/g);
+			var thisId = names[1]; // 1000
+			var thisItem = data[thisId]; // { id: 1000, days: 1, }
+			thisItem[names[0]] = this.value;
+			
+			var assignedName = thisItem.assignedName;
+			for (var id in data) {
+				var item = data[id];
+				if (item.assignedName == assignedName) {
+					var days = item.days * 1;
+					var suspends = item.suspends * 1;
+					var boDate = parseYySmmSdd(item.boDate);
+					boDate.setDate(boDate.getDate() + days + suspends - 1);
+					item.eoDate = yySmmSdd(boDate);
+				}
+			}
+			
+			bindData(data)
+		});
+	});
+	
+	function bindData(data) {
+
 		var $leftTbody = $('table.left tbody');
-		var leftTbodyHtml = $leftTbody.html();
+		var leftTbodyHtml = $('table.left tbody tr:nth-child(1)')[0].outerHTML;
+		$leftTbody.html(leftTbodyHtml);
 		var leftTrs = '';
+		
 		var $rightTbody = $('table.right tbody');
-		var rightTbodyHtml = $rightTbody.html();
+		var rightTbodyHtml = $('table.right tbody tr:nth-child(1)')[0].outerHTML;
+		$rightTbody.html(rightTbodyHtml);
 		var rightTrs = '';
+		
 		for (var r in data) {
 			var item = data[r];
 
@@ -302,27 +353,7 @@
 			var panelWrapper = '<div id="panel_' + id + '" class="panelWrapper" style="left: ' + l + 'px; top: ' + t + 'px;">' + panel + '</div>';
 			$rightTbodyFirstTr.after(panelWrapper);
 		}
-
-		// //幅調整
-		// var offsetWidth = $('body')[0].offsetWidth;
-		// var offsetLeft = $('table.left')[0].offsetLeft + $('table.left')[0].offsetWidth;
-		// $('div.rightWrapper').css('width', offsetWidth - offsetLeft);
-
-		//高さ調整
-		var offsetHeight = $('body')[0].clientHeight;
-		var offsetTop = $('table.left')[0].offsetTop;
-		var theadHeight = $('table.left thead')[0].offsetHeight;
-		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
-		$('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
-		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
-
-		/**
-		 * スクロール連携
-		 */
-		$('div.rightWrapper').on('scroll', function() {
-			$('table.left tbody').scrollTop(this.scrollTop);
-		});
-	});
+	}
 
 	function dummyData() {
 
@@ -331,8 +362,10 @@
 		var boDate = new Date();
 		var eoDate = new Date();
 		var cumuloManDay = 0;
+		
+		boDate.setDate(boDate.getDate() + 1);
 
-		var dummyData = [];
+		var dummyData = {};
 		for (var r = 0; r < 100; r++) {
 
 			var user = r % 5;
@@ -347,7 +380,7 @@
 			var exceeds = parseInt((eoDate - dueDate) / 1000 / 60 / 60 / 24);
 
 			var id = 1000 + r;
-			dummyData[r] = {
+			dummyData[id] = {
 				id : id,
 				projectName : 'project ' + id,
 				phaseName : 'phase ' + id,
@@ -415,7 +448,7 @@
 	}
 </script>
 
-<h2>BrokenDownWorks</h2>
+<h2>ProgressManage</h2>
 <form>
 	<label>基準日
 		<input type="date" name="baseYmd" />
@@ -460,18 +493,18 @@
 			<td title="[[startDate]]">[[startDate]]</td>
 			<td title="[[dueDate]]">[[dueDate]]</td>
 			<td title="[[doneRatio]]">[[doneRatio]]</td>
-			<td title="[[planDays]]" class="dec2">[[planDays]]</td>
-			<td title="[[cumuloManDay]]" class="dec2">[[cumuloManDay]]</td>
-			<td title="[[boDate]]">[[boDate]]</td>
+			<td id="planDays[#]"     title="[[planDays]]" class="dec2">[[planDays]]</td>
+			<td id="cumuloManDay[#]" title="[[cumuloManDay]]" class="dec2">[[cumuloManDay]]</td>
+			<td id="boDate[#]"       title="[[boDate]]">[[boDate]]</td>
 			<td>
 			<input type="number" name="days[#]" step="0.25" value="[[days]]" />
 			</td>
 			<td>
 			<input type="number" name="suspends[#]" step="0.25" value="[[suspends]]" />
 			</td>
-			<td title="[[manDays]]" class="dec2">[[manDays]]</td>
-			<td title="[[eoDate]]">[[eoDate]]</td>
-			<td title="[[exceeds]]">[[exceeds]]</td>
+			<td id="manDays[#]" title="[[manDays]]" class="dec2">[[manDays]]</td>
+			<td id="eoDate[#]"  title="[[eoDate]]">[[eoDate]]</td>
+			<td id="exceeds[#]" title="[[exceeds]]">[[exceeds]]</td>
 		</tr>
 	</tbody>
 	<tfoot>
