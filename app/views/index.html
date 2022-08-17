@@ -267,7 +267,7 @@
 		$('div.rightWrapper').on('scroll', function() {
 			$('table.left tbody').scrollTop(this.scrollTop);
 		});
-		
+
 		/**
 		 * 日数変更イベント
 		 */
@@ -277,52 +277,52 @@
 			var names = this.name.split(/\[|\]/g);
 			var thisItem = data[names[1]];
 			thisItem[names[0]] = this.value;
-			
+
 			var cumuloManDay;
-			
+
 			// 対象のユーザを取得
 			var assignedName = thisItem.assignedName;
 			for (var id in data) {
 				var item = data[id];
-				
+
 				// 対象ユーザの行だけ実積調整
 				if (item.assignedName == assignedName) {
-					
+
 					if (!cumuloManDay) {
 						cumuloManDay = item.cumuloManDay * 1;
 					} else {
 						item.cumuloManDay = cumuloManDay;
 					}
-					
+
 					var days = item.days * 1;
 					var suspends = item.suspends * 1;
 					var manDays = days + suspends;
 					var boDate = parseYySmmSdd(item.boDate);
 					boDate.setDate(boDate.getDate() + manDays - 1);
-					
+
 					item.manDays = manDays;
 					item.eoDate = yySmmSdd(boDate);
-					
+
 					cumuloManDay += manDays;
 				}
 			}
-			
+
 			bindData(data)
 		});
 	});
-	
+
 	function bindData(data) {
 
 		var $leftTbody = $('table.left tbody');
 		var leftTbodyHtml = $('table.left tbody tr:nth-child(1)')[0].outerHTML;
 		$leftTbody.html(leftTbodyHtml);
 		var leftTrs = '';
-		
+
 		var $rightTbody = $('table.right tbody');
 		var rightTbodyHtml = $('table.right tbody tr:nth-child(1)')[0].outerHTML;
 		$rightTbody.html(rightTbodyHtml);
 		var rightTrs = '';
-		
+
 		for (var r in data) {
 			var item = data[r];
 
@@ -382,7 +382,7 @@
 		var boDate = new Date();
 		var eoDate = new Date();
 		var cumuloManDay = 0;
-		
+
 		boDate.setDate(boDate.getDate() + 1);
 
 		var dummyData = {};
