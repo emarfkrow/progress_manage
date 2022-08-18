@@ -362,13 +362,11 @@
 				}
 			}
 
-			bindData(data);
-			
-			return true;
+			bindData(data,this);
 		});
 	});
 
-	function bindData(data) {
+	function bindData(data,input) {
 
 		//左側表
 		var $leftTbody = $('table.left tbody');
@@ -439,6 +437,14 @@
 			var panel = '<div id="panel_' + id + '" class="panel" style="height: ' + h + 'px; width: ' + w + 'px;"></div>';
 			var panelWrapper = '<div id="panel_' + id + '" class="panelWrapper" style="left: ' + l + 'px; top: ' + t + 'px;">' + panel + '</div>';
 			$rightTbodyFirstTr.after(panelWrapper);
+		}
+		
+		if(input){
+			var entered=$('[name="'+input.name+'"]')[0];
+			var $items = $("[name]");
+			var j = $items.index(entered) + 1;
+			var next = $items[j];
+			$(next).focus().select();
 		}
 	}
 
