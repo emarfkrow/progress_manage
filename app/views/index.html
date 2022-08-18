@@ -74,78 +74,88 @@
 		min-width: 8rem;
 		max-width: 8rem;
 	}
-	/* フェーズ */
+	/* プロジェクト開始日 */
 	table.left tr td:nth-child(3) {
 		min-width: 5rem;
 		max-width: 5rem;
 	}
-	/* 題名 */
+	/* フェーズ */
 	table.left tr td:nth-child(4) {
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 題名 */
+	table.left tr td:nth-child(5) {
 		min-width: 15rem;
 		max-width: 15rem;
 	}
 	/* ステータス */
-	table.left tr td:nth-child(5) {
+	table.left tr td:nth-child(6) {
 		min-width: 7rem;
 		max-width: 7rem;
 	}
 	/* 担当者 */
-	table.left tr td:nth-child(6) {
+	table.left tr td:nth-child(7) {
+		min-width: 4rem;
+		max-width: 4rem;
+	}
+	/* 経過日数 */
+	table.left tr td:nth-child(8) {
+		background-color: #eef;
 		min-width: 4rem;
 		max-width: 4rem;
 	}
 	/* 予定開始日 */
-	table.left tr td:nth-child(7) {
-		min-width: 5rem;
-		max-width: 5rem;
-	}
-	/* 予定終了日 */
-	table.left tr td:nth-child(8) {
-		min-width: 5rem;
-		max-width: 5rem;
-	}
-	/* 進捗率 */
-	/*table.left tr td:nth-child(9) {
-	 min-width: 3rem;
-	 max-width: 3rem;
-	 }*/
-	/* 予定日数 */
 	table.left tr td:nth-child(9) {
+		background-color: #eef;
+		min-width: 5rem;
+		max-width: 5rem;
+	}
+	/* 予定日数 */
+	table.left tr td:nth-child(10) {
+		background-color: #eef;
 		min-width: 4rem;
 		max-width: 4rem;
 	}
+	/* 予定終了日 */
+	table.left tr td:nth-child(11) {
+		background-color: #eef;
+		min-width: 5rem;
+		max-width: 5rem;
+	}
 	/* 累積日数 */
-	table.left tr td:nth-child(10) {
+	table.left tr td:nth-child(12) {
+		background-color: #eef;
 		min-width: 3rem;
 		max-width: 3rem;
 	}
 	/* 実績開始日 */
-	table.left tr td:nth-child(11) {
+	table.left tr td:nth-child(13) {
 		min-width: 5rem;
 		max-width: 5rem;
 	}
 	/* 稼働日数 */
-	table.left tr td:nth-child(12) {
+	table.left tr td:nth-child(14) {
 		min-width: 4rem;
 		max-width: 4rem;
 	}
 	/* 中断日数 */
-	table.left tr td:nth-child(13) {
+	table.left tr td:nth-child(15) {
 		min-width: 4rem;
 		max-width: 4rem;
 	}
 	/* 実績日数 */
-	table.left tr td:nth-child(14) {
+	table.left tr td:nth-child(16) {
 		min-width: 3rem;
 		max-width: 3rem;
 	}
 	/* 実績終了日 */
-	table.left tr td:nth-child(15) {
+	table.left tr td:nth-child(17) {
 		min-width: 5rem;
 		max-width: 5rem;
 	}
 	/* 超過日数 */
-	table.left tr td:nth-child(16) {
+	table.left tr td:nth-child(18) {
 		min-width: 4rem;
 		max-width: 4rem;
 	}
@@ -275,10 +285,13 @@
 
 			// 入力値をデータに反映
 			var names = this.name.split(/\[|\]/g);
-			var thisItem = data[names[1]];
-			thisItem[names[0]] = this.value;
+			var columnName = names[0];
+			var thisId = names[1];
+			var thisItem = data[thisId];
+			thisItem[columnName] = this.value;
 
-			var cumuloManDay;
+			//累積日数
+			var cumuloDays = 0;
 
 			// 対象のユーザを取得
 			var assignedName = thisItem.assignedName;
@@ -290,59 +303,97 @@
 				// 対象ユーザの行だけ実積調整
 				if (item.assignedName == assignedName) {
 
-					// 開始日までの累積日数を取得
-					if (!cumuloManDay) {
-						cumuloManDay = item.cumuloManDay * 1;
-					} else {
-						item.cumuloManDay = cumuloManDay;
+					//プロジェクト開始日
+					var projectDate = parseYySmmSdd(item.projectDate);
+
+					//経過日数
+					var goneDays = cumuloDays;
+
+					//予定開始日
+					var startDate = new Date(projectDate.getFullYear(), projectDate.getMonth(), projectDate.getDate());
+					startDate.setDate(startDate.getDate() + goneDays);
+
+					//予定日数
+					var planDays = 0;
+					if (item.planDays) {
+						planDays = item.planDays * 1;
 					}
 
-					var manDays = item.planDays * 1;
-
-					var days = item.days * 1;
-					if (days) {
-						var suspends = item.suspends * 1;
-						manDays = days + suspends;
+					//予定終了日
+					var dueDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+					dueDate.setDate(dueDate.getDate() + Math.ceil(planDays));
+					if (planDays > 0) {
+						dueDate.setSeconds(-1);
 					}
 
-					var boDate = parseYySmmSdd(item.boDate);
-					if (!boDate) {
-						boDate = baseYmd;
-					}
-					boDate.setDate(boDate.getDate() + manDays - 1);
+					cumuloDays += planDays;
 
-					item.manDays = manDays;
-					item.eoDate = yySmmSdd(boDate);
+					item.goneDays = goneDays;
+					item.startDate = yySmmSdd(startDate);
+					item.dueDate = yySmmSdd(dueDate);
+					item.cumuloDays = cumuloDays;
 
-					cumuloManDay += manDays;
+					// // 開始日までの累積日数を取得
+					// cumuloDays += item.cumuloDays * 1;
+					//
+					// //予定日数を取得
+					// var manDays = item.planDays * 1;
+					// if (!startDate) {
+					// startDate = new Date();
+					// }
+					//
+					// //稼働日数があれば中断日数
+					// var days = item.days * 1;
+					// if (days) {
+					// var suspends = item.suspends * 1;
+					// manDays = days + suspends;
+					// }
+					//
+					// var boDate = parseYySmmSdd(item.boDate);
+					// if (!boDate) {
+					// boDate = baseYmd;
+					// }
+					// boDate.setDate(boDate.getDate() + manDays - 1);
+					//
+					// item.manDays = manDays;
+					// item.eoDate = yySmmSdd(boDate);
+					//
+					// cumuloDays += manDays;
 				}
 			}
 
 			bindData(data);
+			
+			return true;
 		});
 	});
 
 	function bindData(data) {
 
+		//左側表
 		var $leftTbody = $('table.left tbody');
 		var leftTbodyHtml = $('table.left tbody tr:nth-child(1)')[0].outerHTML;
 		$leftTbody.html(leftTbodyHtml);
 		var leftTrs = '';
 
+		//右側表
 		var $rightTbody = $('table.right tbody');
 		var rightTbodyHtml = $('table.right tbody tr:nth-child(1)')[0].outerHTML;
 		$rightTbody.html(rightTbodyHtml);
 		var rightTrs = '';
 
+		//データ全件でループ
 		for (var r in data) {
 			var item = data[r];
 
+			//左側表に行追加
 			var leftTr = leftTbodyHtml.replaceAll('#', item.id);
 			for (var k in item) {
 				leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
 			}
 			leftTrs += leftTr.replaceAll(/\[\[.+?\]\]/g, '');
 
+			//右側表に行追加
 			rightTrs += rightTbodyHtml.replaceAll('#', item.id);
 		}
 		$leftTbody.append(leftTrs);
@@ -356,7 +407,7 @@
 		for (var r in data) {
 			var item = data[r];
 			var id = item.id;
-			if (!startDate) {
+			if (!item.startDate) {
 				continue;
 			}
 			var startDate = parseYySmmSdd(item.startDate);
@@ -397,9 +448,11 @@
 		var dueDate = new Date();
 		var boDate = new Date();
 		var eoDate = new Date();
-		var cumuloManDay = 0;
+		var cumuloDays = 0;
 
 		boDate.setDate(boDate.getDate() + 1);
+
+		var projectDate = new Date(2022, 7, 1);
 
 		var dummyData = {};
 		for (var r = 0; r < 100; r++) {
@@ -419,15 +472,16 @@
 			dummyData[id] = {
 				id : id,
 				projectName : 'project ' + id,
-				phaseName : 'phase ' + id,
+				projectDate : yySmmSdd(projectDate),
+				version : 'phase ' + id,
 				subject : 'subject ' + id,
 				statusId : 'statusId ' + id,
 				assignedName : 'user' + user,
-				// startDate : yySmmSdd(startDate),
+				startDate : yySmmSdd(projectDate),
 				// dueDate : yySmmSdd(dueDate),
 				// // doneRatio : '100%',
 				// planDays : planDays,
-				// cumuloManDay : 0,
+				// cumuloDays : 0,
 				// boDate : yySmmSdd(boDate),
 				// // days : days + 1,
 				// // suspends : suspends,
@@ -504,25 +558,26 @@
 		<tr>
 			<th>id</th>
 			<td>プロジェクト</td>
-			<td>フェーズ</td>
+			<td>開始日</td>
+			<td>バージョン</td>
 			<td>題名</td>
 			<td>ステータス</td>
 			<td>担当者</td>
+			<td>経過
+			<br>
+			日数</td>
 			<td>予定開始日</td>
-			<td>予定終了日</td>
-			<!-- <td>進捗率</td> -->
 			<td>予定
 			<br>
 			日数</td>
+			<td>予定終了日</td>
 			<td>累積
 			<br>
 			日数</td>
 			<td>実績開始日</td>
 			<td>稼働日数</td>
 			<td>中断日数</td>
-			<td>実績
-			<br>
-			日数</td>
+			<td>実績日数</td>
 			<td>実績終了日</td>
 			<td>超過日数</td>
 		</tr>
@@ -531,17 +586,18 @@
 		<tr>
 			<th title="[[id]]">[[id]]</th>
 			<td title="[[projectName]]">[[projectName]]</td>
-			<td title="[[phaseName]]">[[phaseName]]</td>
+			<td title="[[projectDate]]">[[projectDate]]</td>
+			<td title="[[version]]">[[version]]</td>
 			<td title="[[subject]]">[[subject]]</td>
 			<td title="[[statusId]]">[[statusId]]</td>
 			<td title="[[assignedName]]">[[assignedName]]</td>
+			<td title="[[goneDays]]" id="goneDays[#]" class="dec2">[[goneDays]]</td>
 			<td title="[[startDate]]">[[startDate]]</td>
-			<td title="[[dueDate]]">[[dueDate]]</td>
-			<!-- <td title="[[doneRatio]]">[[doneRatio]]</td> -->
 			<td>
 			<input type="text" name="planDays[#]" value="[[planDays]]" />
 			</td>
-			<td id="cumuloManDay[#]" title="[[cumuloManDay]]" class="dec2">[[cumuloManDay]]</td>
+			<td title="[[dueDate]]">[[dueDate]]</td>
+			<td id="cumuloDays[#]" title="[[cumuloDays]]" class="dec2">[[cumuloDays]]</td>
 			<td id="boDate[#]"       title="[[boDate]]">[[boDate]]</td>
 			<td>
 			<input type="text" name="days[#]" value="[[days]]" />
@@ -557,6 +613,7 @@
 	<tfoot>
 		<tr>
 			<th>&nbsp;</th>
+			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
