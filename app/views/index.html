@@ -99,7 +99,7 @@
 		min-width: 4rem;
 		max-width: 4rem;
 	}
-	/* 経過日数 */
+	/* 予定開始数 */
 	table.left tr td:nth-child(8) {
 		background-color: #eef;
 		min-width: 4rem;
@@ -123,39 +123,49 @@
 		min-width: 5rem;
 		max-width: 5rem;
 	}
-	/* 累積日数 */
+	/* 予定終了数 */
 	table.left tr td:nth-child(12) {
 		background-color: #eef;
-		min-width: 3rem;
-		max-width: 3rem;
+		min-width: 4rem;
+		max-width: 4rem;
+	}
+	/* 実績開始数 */
+	table.left tr td:nth-child(13) {
+		min-width: 4rem;
+		max-width: 4rem;
 	}
 	/* 実績開始日 */
-	table.left tr td:nth-child(13) {
+	table.left tr td:nth-child(14) {
 		min-width: 5rem;
 		max-width: 5rem;
 	}
 	/* 稼働日数 */
-	table.left tr td:nth-child(14) {
-		min-width: 4rem;
-		max-width: 4rem;
-	}
-	/* 中断日数 */
 	table.left tr td:nth-child(15) {
 		min-width: 4rem;
 		max-width: 4rem;
 	}
-	/* 実績日数 */
+	/* 中断日数 */
 	table.left tr td:nth-child(16) {
+		min-width: 4rem;
+		max-width: 4rem;
+	}
+	/* 実績日数 */
+	table.left tr td:nth-child(17) {
 		min-width: 3rem;
 		max-width: 3rem;
 	}
 	/* 実績終了日 */
-	table.left tr td:nth-child(17) {
+	table.left tr td:nth-child(18) {
 		min-width: 5rem;
 		max-width: 5rem;
 	}
+	/* 実績終了数 */
+	table.left tr td:nth-child(19) {
+		min-width: 4rem;
+		max-width: 4rem;
+	}
 	/* 超過日数 */
-	table.left tr td:nth-child(18) {
+	table.left tr td:nth-child(20) {
 		min-width: 4rem;
 		max-width: 4rem;
 	}
@@ -290,8 +300,11 @@
 			var thisItem = data[thisId];
 			thisItem[columnName] = this.value;
 
-			//累積日数
+			//予定終了数
 			var cumuloDays = 0;
+			
+			//実績終了数
+			var eoDays = 0;
 
 			// 対象のユーザを取得
 			var assignedName = thisItem.assignedName;
@@ -306,12 +319,24 @@
 					//プロジェクト開始日
 					var projectDate = parseYySmmSdd(item.projectDate);
 
-					//経過日数
-					var goneDays = cumuloDays;
+					//予定開始数
+					var startDays = cumuloDays;
 
 					//予定開始日
 					var startDate = new Date(projectDate.getFullYear(), projectDate.getMonth(), projectDate.getDate());
-					startDate.setDate(startDate.getDate() + goneDays);
+					if (startDays > 0) {
+						var workDays = 0;
+						while (true) {
+							startDate.setDate(startDate.getDate() + 1);
+							var startDay = startDate.getDay();
+							if (0 < startDay && startDay < 6) {
+								++workDays;
+							}
+							if (Math.floor(startDays) <= workDays) {
+								break;
+							}
+						}
+					}
 
 					//予定日数
 					var planDays = 0;
@@ -321,44 +346,95 @@
 
 					//予定終了日
 					var dueDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-					dueDate.setDate(dueDate.getDate() + Math.ceil(planDays));
 					if (planDays > 0) {
+						var workDays = 0;
+						while (true) {
+							dueDate.setDate(dueDate.getDate() + 1);
+							var dueDay = dueDate.getDay();
+							if (0 < dueDay && dueDay < 6) {
+								++workDays;
+							}
+							if (planDays <= workDays) {
+								break;
+							}
+						}
 						dueDate.setSeconds(-1);
 					}
 
+					//予定終了数
 					cumuloDays += planDays;
 
-					item.goneDays = goneDays;
+					item.startDays = startDays;
 					item.startDate = yySmmSdd(startDate);
 					item.dueDate = yySmmSdd(dueDate);
 					item.cumuloDays = cumuloDays;
 
-					// // 開始日までの累積日数を取得
-					// cumuloDays += item.cumuloDays * 1;
-					//
-					// //予定日数を取得
-					// var manDays = item.planDays * 1;
-					// if (!startDate) {
-					// startDate = new Date();
-					// }
-					//
-					// //稼働日数があれば中断日数
-					// var days = item.days * 1;
-					// if (days) {
-					// var suspends = item.suspends * 1;
-					// manDays = days + suspends;
-					// }
-					//
-					// var boDate = parseYySmmSdd(item.boDate);
-					// if (!boDate) {
-					// boDate = baseYmd;
-					// }
-					// boDate.setDate(boDate.getDate() + manDays - 1);
-					//
-					// item.manDays = manDays;
-					// item.eoDate = yySmmSdd(boDate);
-					//
-					// cumuloDays += manDays;
+					
+					
+					
+					
+					//実績開始数
+					var boDays = eoDays;
+
+					//実績開始日
+					var boDate = new Date(projectDate.getFullYear(), projectDate.getMonth(), projectDate.getDate());
+					if (boDays > 0) {
+						var workDays = 0;
+						while (true) {
+							boDate.setDate(boDate.getDate() + 1);
+							var startDay = boDate.getDay();
+							if (0 < startDay && startDay < 6) {
+								++workDays;
+							}
+							if (Math.floor(boDays) <= workDays) {
+								break;
+							}
+						}
+					}
+
+					//稼働日数
+					var days = 0;
+					if (item.days) {
+						days = item.days * 1;
+					}
+
+					//中断日数
+					var suspends = 0;
+					if (item.suspends) {
+						suspends = item.suspends * 1;
+					}
+
+					//実績日数
+					var manDays = days + suspends;
+
+					//実績終了日
+					var eoDate = new Date(boDate.getFullYear(), boDate.getMonth(), boDate.getDate());
+					if (manDays > 0) {
+						var workDays = 0;
+						while (true) {
+							eoDate.setDate(eoDate.getDate() + 1);
+						eoDate.setSeconds(-1);
+							var dueDay = eoDate.getDay();
+							if (0 < dueDay && dueDay < 6) {
+								++workDays;
+							}
+							if (manDays <= workDays) {
+								break;
+							}
+						}
+					}
+
+					//実績終了数
+					eoDays += manDays;
+
+					item.boDays = boDays;
+					item.boDate = yySmmSdd(boDate);
+					item.manDays = manDays;
+					item.eoDate = yySmmSdd(eoDate);
+					item.eoDays = eoDays;
+					
+					
+					item.exceeds = manDays - planDays;
 				}
 			}
 
@@ -418,22 +494,36 @@
 			}
 		}
 
-		//実績期間の描画
+		/*
+		 * 実績期間の描画
+		 */
+		
+		//実績を一旦全削除
 		$('.panelWrapper').remove();
+		
+		//ヘッダ行高さ
 		var theadHeight = $('table.right thead')[0].offsetHeight;
+		
+		//テンプレート行
 		var $rightTbodyFirstTr = $('table.right tbody tr:nth-child(1)');
+		
+		//データでループ
 		for (var r in data) {
 			var item = data[r];
+			
 			var id = item.id;
 			var $boDateCell = $('table.right tbody [id="' + item.boDate + '[' + id + ']"]');
+			var $eoDateCell = $('table.right tbody [id="' + item.eoDate + '[' + id + ']"]');
+			
 			if ($boDateCell.length == 0) {
 				continue;
 			}
-			var l = $boDateCell[0].offsetLeft;
+			
+			var l = $boDateCell[0].offsetLeft - 1;
 			var t = $boDateCell[0].offsetTop - theadHeight;
-			var $eoDateCell = $('table.right tbody [id="' + item.eoDate + '[' + id + ']"]');
 			var h = $eoDateCell[0].offsetHeight - 1;
-			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - 2;
+			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - l - 2;
+			
 			var panel = '<div id="panel_' + id + '" class="panel" style="height: ' + h + 'px; width: ' + w + 'px;"></div>';
 			var panelWrapper = '<div id="panel_' + id + '" class="panelWrapper" style="left: ' + l + 'px; top: ' + t + 'px;">' + panel + '</div>';
 			$rightTbodyFirstTr.after(panelWrapper);
@@ -488,7 +578,7 @@
 				// // doneRatio : '100%',
 				// planDays : planDays,
 				// cumuloDays : 0,
-				// boDate : yySmmSdd(boDate),
+				boDate : yySmmSdd(projectDate),
 				// // days : days + 1,
 				// // suspends : suspends,
 				// days : '',
@@ -569,23 +659,19 @@
 			<td>題名</td>
 			<td>ステータス</td>
 			<td>担当者</td>
-			<td>経過
-			<br>
-			日数</td>
-			<td>予定開始日</td>
-			<td>予定
-			<br>
-			日数</td>
-			<td>予定終了日</td>
-			<td>累積
-			<br>
-			日数</td>
-			<td>実績開始日</td>
-			<td>稼働日数</td>
-			<td>中断日数</td>
-			<td>実績日数</td>
-			<td>実績終了日</td>
-			<td>超過日数</td>
+			<td>予定<br>開始数</td>
+			<td>予定<br>開始日</td>
+			<td>予定<br>日数</td>
+			<td>予定<br>終了日</td>
+			<td>予定<br>終了数</td>
+			<td>実績<br>開始数</td>
+			<td>実績<br>開始日</td>
+			<td>稼働<br>日数</td>
+			<td>中断<br>日数</td>
+			<td>実績<br>日数</td>
+			<td>実績<br>終了日</td>
+			<td>実績<br>終了数</td>
+			<td>超過<br>日数</td>
 		</tr>
 	</thead>
 	<tbody>
@@ -597,23 +683,19 @@
 			<td title="[[subject]]">[[subject]]</td>
 			<td title="[[statusId]]">[[statusId]]</td>
 			<td title="[[assignedName]]">[[assignedName]]</td>
-			<td title="[[goneDays]]" id="goneDays[#]" class="dec2">[[goneDays]]</td>
-			<td title="[[startDate]]">[[startDate]]</td>
-			<td>
-			<input type="text" name="planDays[#]" value="[[planDays]]" />
-			</td>
-			<td title="[[dueDate]]">[[dueDate]]</td>
+			<td id="startDays[#]"  title="[[startDays]]" class="dec2">[[startDays]]</td>
+			<td id="startDate[#]"  title="[[startDate]]">[[startDate]]</td>
+			<td><input type="text" name="planDays[#]" value="[[planDays]]" /></td>
+			<td id="dueDate[#]"    title="[[dueDate]]">[[dueDate]]</td>
 			<td id="cumuloDays[#]" title="[[cumuloDays]]" class="dec2">[[cumuloDays]]</td>
-			<td id="boDate[#]"       title="[[boDate]]">[[boDate]]</td>
-			<td>
-			<input type="text" name="days[#]" value="[[days]]" />
-			</td>
-			<td>
-			<input type="text" name="suspends[#]" value="[[suspends]]" />
-			</td>
-			<td id="manDays[#]" title="[[manDays]]" class="dec2">[[manDays]]</td>
-			<td id="eoDate[#]"  title="[[eoDate]]">[[eoDate]]</td>
-			<td id="exceeds[#]" title="[[exceeds]]">[[exceeds]]</td>
+			<td id="boDays[#]"     title="[[boDays]]" class="dec2">[[boDays]]</td>
+			<td id="boDate[#]"     title="[[boDate]]">[[boDate]]</td>
+			<td><input type="text" name="days[#]"     value="[[days]]" /></td>
+			<td><input type="text" name="suspends[#]" value="[[suspends]]" /></td>
+			<td id="manDays[#]"    title="[[manDays]]" class="dec2">[[manDays]]</td>
+			<td id="eoDate[#]"     title="[[eoDate]]">[[eoDate]]</td>
+			<td id="eoDays[#]"     title="[[eoDays]]" class="dec2">[[eoDays]]</td>
+			<td id="exceeds[#]"    title="[[exceeds]]" class="dec2">[[exceeds]]</td>
 		</tr>
 	</tbody>
 	<tfoot>
@@ -627,7 +709,9 @@
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
-			<!-- <td>&nbsp;</td> -->
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
