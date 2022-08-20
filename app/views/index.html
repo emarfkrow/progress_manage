@@ -59,6 +59,10 @@
 		text-align: center;
 	}
 
+	div.submits {
+		float: right;
+	}
+
 	table.left {
 		float: left;
 	}
@@ -221,17 +225,21 @@
 
 		//横軸：日付の表示
 		var baseYmd = new Date(Date.parse($('[name="baseYmd"]').val()));
+
+		var baseY = baseYmd.getFullYear();
+		var baseM = baseYmd.getMonth();
+		var baseD = baseYmd.getDate();
+		var baseYm = baseY * 100 + baseM;
+
 		var theadTds = '';
 		var tbodyTds = '';
 		var tfootTds = '';
 		for (var i = 0; true; i++) {
 
 			//日付の取得
-			var date = new Date(baseYmd.getFullYear(), baseYmd.getMonth(), baseYmd.getDate());
-			date.setDate(date.getDate() + i);
+			var date = new Date(baseY, baseM, baseD + i);
 
 			//３カ月分で終了
-			var baseYm = baseYmd.getFullYear() * 100 + baseYmd.getMonth();
 			var ym = date.getFullYear() * 100 + date.getMonth();
 			if (ym - baseYm >= months) {
 				break;
@@ -247,7 +255,7 @@
 			//セル文字列に退避
 			theadTds += '<td' + classHoliday + '>' + yySmmSdd(date) + '</td>';
 			tbodyTds += '<td id="' + yySmmSdd(date) + '[#]"' + classHoliday + '>&nbsp;</td>';
-			tfootTds += '<td id="' + yySmmSdd(date) + '"' + classHoliday + '>&nbsp;</td>';
+			tfootTds += '<td' + classHoliday + '>&nbsp;</td>';
 		}
 
 		//退避したセル文字列を追加
@@ -257,6 +265,9 @@
 
 		//縦軸：データの表示
 		bindData(data);
+
+		//実績パネルの表示
+		addPanels(data);
 
 		// //幅調整
 		// var offsetWidth = $('body')[0].offsetWidth;
@@ -279,11 +290,9 @@
 		});
 
 		/**
-		 * 日数変更イベント
+		 * 日数変更イベント（入力値をデータに反映するだけ）
 		 */
 		$(document).on('change', '[name^="days"], [name^="suspends"]', function() {
-
-			//入力値をデータに反映
 			var names = this.name.split(/\[|\]/g);
 			var columnName = names[0];
 			var thisId = names[1];
@@ -291,16 +300,20 @@
 			thisItem[columnName] = this.value;
 		});
 
+		/**
+		 * 再描画ボタン押下
+		 */
 		$('[name="redraw"]').on('click', function() {
 			redrawData(data);
 		});
 	});
 
+	/**
+	 * 再描画ボタン押下
+	 */
 	function redrawData(data) {
 
-		//実績を一旦全削除
-		$('.panelWrapper').remove();
-
+		//担当者名毎に実績期間を再計算
 		var assignedNames = {};
 		for (var id in data) {
 			var item = data[id];
@@ -310,14 +323,15 @@
 				assignedNames[assignedName] = 1;
 			}
 		}
-		
-		panel(data);
+
+		//実績パネルを表示
+		addPanels(data);
 	}
 
+	/**
+	 * 指定した担当者について、実績日数から実績期間を再計算
+	 */
 	function calcData(data, assignedName) {
-
-		//予定終了数
-		var dueDays = 0;
 
 		//実績終了数
 		var eoDays = 0;
@@ -372,10 +386,10 @@
 				//実績終了日
 				var eoDate = new Date(boDate.getFullYear(), boDate.getMonth(), boDate.getDate());
 				if (item.manDays > 0) {
+					eoDate.setSeconds(-1);
 					var workDays = 0;
 					while (true) {
 						eoDate.setDate(eoDate.getDate() + 1);
-						eoDate.setSeconds(-1);
 						var eoDay = eoDate.getDay();
 						if (0 < eoDay && eoDay < 6) {++workDays;
 						}
@@ -390,52 +404,77 @@
 				eoDays += item.manDays;
 				item.eoDays = eoDays;
 
-				$('[id="boDays[' + id + ']"]').html(item.boDays);
-				$('[id="boDate[' + id + ']"]').html(item.boDate);
-				$('[id="manDays[' + id + ']"]').html(item.manDays);
-				$('[id="eoDate[' + id + ']"]').html(item.eoDate);
-				$('[id="eoDays[' + id + ']"]').html(item.eoDays);
+				var $leftTr = $('table.left tbody tr[id="leftTr[' + id + ']"]');
+				$leftTr.find('[id="boDays[' + id + ']"]').html(item.boDays);
+				$leftTr.find('[id="boDate[' + id + ']"]').html(item.boDate);
+				$leftTr.find('[id="manDays[' + id + ']"]').html(item.manDays);
+				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
+				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
 			}
 		}
+
+		//小数２桁表示
+		$('.dec2').each(function() {
+			dec2(this);
+		});
 	}
 
-	function panel(data) {
+	/**
+	 * データの実績開始日・実績終了日から、パネルを描画
+	 */
+	function addPanels(data) {
+
+		//実績を一旦全削除
+		$('.panelWrapper').remove();
 
 		//ヘッダ行高さ
 		var theadHeight = $('table.right thead')[0].offsetHeight;
 
-		//テンプレート行
+		//明細エリア
 		var $rightTbody = $('table.right tbody');
-		var $rightTbodyFirstTr = $rightTbody.find('tr:nth-child(1)');
 
-		var panelWrappers = '';
+		//描画基準日
+		var baseYmd = new Date(Date.parse($('[name="baseYmd"]').val()));
 
 		//データでループ
+		var panelWrappers = '';
 		for (var r in data) {
 			var item = data[r];
 
+			//実績開始日が未確定ならスキップ
 			if (!item.boDate) {
 				continue;
 			}
 
-			var id = item.id;
-			var $boDateCell = $rightTbody.find('[id="' + item.boDate + '[' + id + ']"]');
-			if ($boDateCell.length == 0) {
+			if (parseYySmmSdd(item.eoDate) < baseYmd) {
 				continue;
 			}
+
+			var boDate = item.boDate;
+			if (parseYySmmSdd(boDate) < baseYmd) {
+				boDate = yySmmSdd(baseYmd);
+			}
+
+			//チケットID
+			var id = item.id;
+
+			//実績開始日セルから、パネルの上座標・左座標を取得
+			var $boDateCell = $rightTbody.find('[id="' + boDate + '[' + id + ']"]');
 			var l = $boDateCell[0].offsetLeft - 1;
 			var t = $boDateCell[0].offsetTop - theadHeight;
 
+			//実績終了日セルから、パネルの高さ・幅を取得
 			var $eoDateCell = $rightTbody.find('[id="' + item.eoDate + '[' + id + ']"]');
 			var h = $eoDateCell[0].offsetHeight - 1;
 			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - l - 2;
 
+			//パネル文字列に追加
 			var panel = '<div id="panel_' + id + '" class="panel" style="height: ' + h + 'px; width: ' + w + 'px;"></div>';
 			var panelWrapper = '<div id="panel_' + id + '" class="panelWrapper" style="left: ' + l + 'px; top: ' + t + 'px;">' + panel + '</div>';
 			panelWrappers += panelWrapper;
 		}
 
-		$rightTbodyFirstTr.after(panelWrappers);
+		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 	}
 
 	function bindData(data) {
@@ -469,6 +508,7 @@
 		$leftTbody.append(leftTrs);
 		$rightTbody.append(rightTrs);
 
+		//小数２桁表示
 		$('.dec2').each(function() {
 			dec2(this);
 		});
@@ -644,7 +684,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr>
+		<tr id="leftTr[#]">
 			<th title="[[id]]">[[id]]</th>
 			<td title="[[projectName]]">[[projectName]]</td>
 			<td title="[[projectDate]]">[[projectDate]]</td>
@@ -694,7 +734,7 @@
 			<tr></tr>
 		</thead>
 		<tbody>
-			<tr></tr>
+			<tr id="rightTr[#]"></tr>
 		</tbody>
 		<tfoot>
 			<tr></tr>
