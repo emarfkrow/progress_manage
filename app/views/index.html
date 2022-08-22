@@ -42,6 +42,144 @@
 		$('[name="baseYmd"]').val(Dates.formatYyyyHmmHdd(date));
 
 		//横軸：日付の表示
+		setDays(data);
+
+		var data = dummyData();
+
+		//縦軸：データの表示
+		bindData(data);
+
+		//実績期間のパネル表示
+		addPanels(data);
+
+		// //幅調整
+		// var offsetWidth = $('body')[0].offsetWidth;
+		// var offsetLeft = $('table.left')[0].offsetLeft + $('table.left')[0].offsetWidth;
+		// $('div.rightWrapper').css('width', offsetWidth - offsetLeft);
+
+		// //高さ調整
+		// var offsetHeight = $('body')[0].clientHeight;
+		// var offsetTop = $('table.left')[0].offsetTop;
+		// var theadHeight = $('table.left thead')[0].offsetHeight;
+		// var tfootHeight = $('table.left tfoot')[0].offsetHeight;
+		// $('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
+		// $('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+
+		$('[name="baseYmd"]').on('change', function() {
+			setDays(data);
+			bindData(data);
+			addPanels(data);
+		});
+		
+		/**
+		 * スクロール連携
+		 */
+		$('div.rightWrapper').on('scroll', function() {
+			$('table.left tbody').scrollTop(this.scrollTop);
+			bindData(data);
+			addPanels(data);
+		});
+
+		/**
+		 * 上移動イベント
+		 */
+		$(document).on('click', '[id^="upper"]', function() {
+			
+			var ids = this.id.split(/\[|\]/g);
+			var thisId = ids[1];
+			var thisItem = data[thisId];
+			
+			var newData = {};
+			var preItem = null;
+			for (var id in data) {
+				if (id == thisId) {
+					newData[thisId] = thisItem;
+				}
+				if (preItem != null) {
+					newData[preItem.id] = preItem;
+				}
+				preItem = data[id];
+			}
+			newData[preItem.id] = preItem;
+			data = $.extend(true, {}, newData);
+			newData = null;
+			
+			calcData(data, thisItem.assignedName);
+			bindData(data);
+			addPanels(data);
+		});
+
+		/**
+		 * 下移動イベント
+		 */
+		$(document).on('click', '[id^="downer"]', function() {
+			
+			var ids = this.id.split(/\[|\]/g);
+			var thisId = ids[1];
+			var thisItem = data[thisId];
+			
+			var newData = {};
+			var preItem = null;
+			for (var id in data) {
+				if (id != thisId) {
+					newData[id] = data[id];
+				}
+				if (preItem != null) {
+					newData[thisId] = thisItem;
+					preItem = null;
+				}
+				if (id == thisId) {
+					preItem = data[id];
+				}
+			}
+			if (preItem != null) {
+				newData[preItem.id] = preItem;
+			}
+			data = $.extend(true, {}, newData);
+			newData = null;
+			
+			calcData(data, thisItem.assignedName);
+			bindData(data);
+			addPanels(data);
+		});
+
+		/**
+		 * 予定期間変更イベント
+		 */
+		$(document).on('change', '[name^="startDate"], [name^="dueDate"]', function() {
+			var names = this.name.split(/\[|\]/g);
+			var columnName = names[0];
+			var id = names[1];
+			var item = data[id];
+			item[columnName] = this.value;
+			fillPlan(item);
+		});
+
+		/**
+		 * 実績日数変更イベント（入力値をデータに反映するだけ）
+		 */
+		$(document).on('change', '[name^="days"], [name^="suspends"]', function() {
+			var names = this.name.split(/\[|\]/g);
+			var columnName = names[0];
+			var thisId = names[1];
+			var thisItem = data[thisId];
+			thisItem[columnName] = this.value;
+		});
+
+		/**
+		 * 再描画ボタン押下
+		 */
+		$('[name="redraw"]').on('click', function() {
+			redrawData(data);
+		});
+	});
+	
+	function setDays(data) {
+
+		$('table.right thead tr').html('');
+		$('table.right tbody tr').html('');
+		$('table.right tfoot tr').html('');
+
 		var baseYmd = Dates.parseYyyyHmmHdd($('[name="baseYmd"]').val());
 		var baseY = baseYmd.getFullYear();
 		var baseM = baseYmd.getMonth();
@@ -80,125 +218,7 @@
 		$('table.right thead tr').append(theadTds);
 		$('table.right tbody tr').append(tbodyTds);
 		$('table.right tfoot tr').append(tfootTds);
-
-		var data = dummyData();
-
-		//縦軸：データの表示
-		bindData(data);
-
-		//実績期間のパネル表示
-		addPanels(data);
-
-		// //幅調整
-		// var offsetWidth = $('body')[0].offsetWidth;
-		// var offsetLeft = $('table.left')[0].offsetLeft + $('table.left')[0].offsetWidth;
-		// $('div.rightWrapper').css('width', offsetWidth - offsetLeft);
-
-		// //高さ調整
-		// var offsetHeight = $('body')[0].clientHeight;
-		// var offsetTop = $('table.left')[0].offsetTop;
-		// var theadHeight = $('table.left thead')[0].offsetHeight;
-		// var tfootHeight = $('table.left tfoot')[0].offsetHeight;
-		// $('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
-		// $('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
-
-		/**
-		 * スクロール連携
-		 */
-		$('div.rightWrapper').on('scroll', function() {
-			$('table.left tbody').scrollTop(this.scrollTop);
-			bindData(data)
-		});
-
-		/**
-		 * 上移動イベント
-		 */
-		$(document).on('click', '[id^="upper"]', function() {
-			
-			var ids = this.id.split(/\[|\]/g);
-			var thisId = ids[1];
-			var thisItem = data[thisId];
-			
-			var newData = {};
-			var preItem = null;
-			for (var id in data) {
-				if (id == thisId) {
-					newData[thisId] = thisItem;
-				}
-				if (preItem != null) {
-					newData[preItem.id] = preItem;
-				}
-				preItem = data[id];
-			}
-			newData[preItem.id] = preItem;
-			data = $.extend(true, {}, newData);
-			newData = null;
-			
-			bindData(data);
-		});
-
-		/**
-		 * 下移動イベント
-		 */
-		$(document).on('click', '[id^="downer"]', function() {
-			
-			var ids = this.id.split(/\[|\]/g);
-			var thisId = ids[1];
-			var thisItem = data[thisId];
-			
-			var newData = {};
-			var preItem = null;
-			for (var id in data) {
-				if (id != thisId) {
-					newData[id] = data[id];
-				}
-				if (preItem != null) {
-					newData[thisId] = thisItem;
-					preItem = null;
-				}
-				if (id == thisId) {
-					preItem = data[id];
-				}
-			}
-			if (preItem != null) {
-				newData[preItem.id] = preItem;
-			}
-			data = $.extend(true, {}, newData);
-			newData = null;
-			
-			bindData(data);
-		});
-
-		/**
-		 * 予定期間変更イベント
-		 */
-		$(document).on('change', '[name^="startDate"], [name^="dueDate"]', function() {
-			var names = this.name.split(/\[|\]/g);
-			var columnName = names[0];
-			var id = names[1];
-			var item = data[id];
-			item[columnName] = this.value;
-			fillPlan(item);
-		});
-
-		/**
-		 * 実績日数変更イベント（入力値をデータに反映するだけ）
-		 */
-		$(document).on('change', '[name^="days"], [name^="suspends"]', function() {
-			var names = this.name.split(/\[|\]/g);
-			var columnName = names[0];
-			var thisId = names[1];
-			var thisItem = data[thisId];
-			thisItem[columnName] = this.value;
-		});
-
-		/**
-		 * 再描画ボタン押下
-		 */
-		$('[name="redraw"]').on('click', function() {
-			redrawData(data);
-		});
-	});
+	}
 	
 	function fillPlan(item) {
 		if (!item.startDate || !item.dueDate) {
@@ -460,6 +480,7 @@
 				continue;
 			}
 
+			//実績終了日が基準日より過去ならスキップ
 			if (Dates.parseYySmmSdd(item.eoDate) < baseYmd) {
 				continue;
 			}
@@ -474,6 +495,9 @@
 
 			//実績開始日セルから、パネルの上座標・左座標を取得
 			var $boDateCell = $rightTbody.find('[id="' + boDate + '[' + id + ']"]');
+			if ($boDateCell.length == 0) {
+				continue;
+			}
 			var l = $boDateCell[0].offsetLeft - 1;
 			var t = $boDateCell[0].offsetTop - theadHeight;
 
