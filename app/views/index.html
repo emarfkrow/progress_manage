@@ -10,9 +10,8 @@
 <script src="Numbers.js"></script>
 
 <script type="text/javascript">
-
 	var months = 3;
-	
+
 	/**
 	 * ダミーデータ作成
 	 */
@@ -32,14 +31,16 @@
 		}
 		return dummyData;
 	};
-	
-	var users = { 0966: '福尾' };
+
+	var users = {
+		0966 : '福尾'
+	};
 
 	$(function() {
-		
+
 		//リンクをボタン化
 		$('a').button();
-		
+
 		//基準日の初期表示
 		var date = new Date();
 		$('[name="baseYmd"]').val(Dates.formatYyyyHmmHdd(date));
@@ -84,7 +85,7 @@
 			bindData(data);
 			redrawPanels(data);
 		});
-		
+
 		/**
 		 * スクロール連携
 		 */
@@ -98,11 +99,11 @@
 		 * 上移動イベント
 		 */
 		$(document).on('click', '[id^="upper"]', function() {
-			
+
 			var ids = this.id.split(/\[|\]/g);
 			var thisId = ids[1];
 			var thisItem = data[thisId];
-			
+
 			var newData = {};
 			var preItem = null;
 			for (var id in data) {
@@ -117,7 +118,7 @@
 			newData[preItem.id] = preItem;
 			data = $.extend(true, {}, newData);
 			newData = null;
-			
+
 			calcData(data, thisItem.assignedName);
 			bindData(data);
 			redrawPanels(data);
@@ -127,11 +128,11 @@
 		 * 下移動イベント
 		 */
 		$(document).on('click', '[id^="downer"]', function() {
-			
+
 			var ids = this.id.split(/\[|\]/g);
 			var thisId = ids[1];
 			var thisItem = data[thisId];
-			
+
 			var newData = {};
 			var preItem = null;
 			for (var id in data) {
@@ -151,7 +152,7 @@
 			}
 			data = $.extend(true, {}, newData);
 			newData = null;
-			
+
 			calcData(data, thisItem.assignedName);
 			bindData(data);
 			redrawPanels(data);
@@ -188,7 +189,7 @@
 			redrawData(data);
 		});
 	});
-	
+
 	function setDays(data) {
 
 		$('table.right thead tr').html('');
@@ -234,7 +235,7 @@
 		$('table.right tbody tr').append(tbodyTds);
 		$('table.right tfoot tr').append(tfootTds);
 	}
-	
+
 	function fillPlan(item) {
 		if (!item.startDate || !item.dueDate) {
 			return;
@@ -257,17 +258,17 @@
 		var theadHeight = $('table.left thead')[0].offsetHeight;
 		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
 		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - 25;
-		
+
 		//明細部のスクロール量
 		var leftScrollTop = $('table.left tbody').scrollTop();
-		
+
 		//明細部の行高さ
 		var trHeight = $('table.left tbody tr:nth-child(1)').height();
-		
+
 		/*
-		 * 明細部のクリア
-		 */
-		
+		* 明細部のクリア
+		*/
+
 		//左側表をリセット
 		var $leftTbody = $('table.left tbody');
 		var leftTbodyHtml = $leftTbody.find('tr:nth-child(1)')[0].outerHTML;
@@ -281,22 +282,22 @@
 		//明細部の高さを一旦リセット
 		$leftTbody.css('height', '');
 		$('div.rightWrapper').css('height', '');
-		
+
 		/*
-		 *
-		 */
+		*
+		*/
 
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
 		var trsHeight = 0;
 		var leftTrs = '';
 		var rightTrs = '';
 		for (var r in data) {
-			
+
 			var leftTr = '';
 			var rightTr = '';
-			
+
 			trsHeight += trHeight;
-			
+
 			if (trsHeight < leftScrollTop) {
 				//上側非表示部
 				leftTr = '<tr><td></td></tr>';
@@ -306,24 +307,24 @@
 				leftTr = '<tr><td></td></tr>';
 				rightTr = '<tr><td></td></tr>';
 			} else {
-				
+
 				var item = data[r];
-	
+
 				//左側表文字列に追加
 				var leftTr = leftTbodyHtml.replaceAll('#', item.id);
 				for (var k in item) {
 					leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
 				}
 				leftTr = leftTr.replaceAll(/\[\[.+?\]\]/g, '');
-	
+
 				//右側表文字列に追加
 				var rightTr = rightTbodyHtml.replaceAll('#', item.id);
 			}
-			
+
 			leftTrs += leftTr;
 			rightTrs += rightTr;
 		}
-			
+
 		$leftTbody.append(leftTrs);
 		$rightTbody.append(rightTrs);
 
@@ -331,16 +332,16 @@
 		$leftTbody.scrollTop(leftScrollTop);
 		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
 		$('div.rightWrapper').scrollTop(leftScrollTop);
-		
-// 		$('.datepicker').datepicker({
-//             dateFormat: 'yy-mm-dd',
-//             dayNamesMin: ['日', '月', '火', '水', '木', '金', '土'],
-//             monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-//             showMonthAfterYear: true,
-//             yearSuffix: '年',
-//             showOtherMonths: true,
-//             selectOtherMonths: true
-//         });
+
+		// 		$('.datepicker').datepicker({
+		//             dateFormat: 'yy-mm-dd',
+		//             dayNamesMin: ['日', '月', '火', '水', '木', '金', '土'],
+		//             monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+		//             showMonthAfterYear: true,
+		//             yearSuffix: '年',
+		//             showOtherMonths: true,
+		//             selectOtherMonths: true
+		//         });
 
 		//小数２桁表示
 		$('.dec2').each(function() {
@@ -515,7 +516,7 @@
 			if ($boDateCell.length == 0) {
 				continue;
 			}
-			
+
 			//実績開始日セルから、パネルの上座標・左座標を取得
 			var l = $boDateCell[0].offsetLeft - 1;
 			var t = $boDateCell[0].offsetTop - theadHeight;
@@ -539,11 +540,12 @@
 
 <h2>ProgressManage</h2>
 <form>
-	<label>基準日 <input type="date" name="baseYmd" />
+	<label>基準日
+		<input type="date" name="baseYmd" />
 	</label>
-<!-- 	<div class="submits"> -->
-<!-- 		<button type="button" name="redraw">実績再描画</button> -->
-<!-- 	</div> -->
+	<!-- 	<div class="submits"> -->
+	<!-- 		<button type="button" name="redraw">実績再描画</button> -->
+	<!-- 	</div> -->
 </form>
 <table class="progress left">
 	<thead>
@@ -558,20 +560,27 @@
 			<td>担当者</td>
 			<td>開始日</td>
 			<td>期日</td>
-			<td>実績<br>開始数
-			</td>
-			<td>実績<br>開始日
-			</td>
-			<td>稼働<br>日数
-			</td>
-			<td>中断<br>日数
-			</td>
-			<td>実績<br>日数
-			</td>
-			<td>実績<br>終了日
-			</td>
-			<td>実績<br>終了数
-			</td>
+			<td>実績
+			<br>
+			開始数 </td>
+			<td>実績
+			<br>
+			開始日 </td>
+			<td>稼働
+			<br>
+			日数 </td>
+			<td>中断
+			<br>
+			日数 </td>
+			<td>実績
+			<br>
+			日数 </td>
+			<td>実績
+			<br>
+			終了日 </td>
+			<td>実績
+			<br>
+			終了数 </td>
 		</tr>
 	</thead>
 	<tbody>
@@ -584,12 +593,20 @@
 			<td title="[[subject]]">[[subject]]</td>
 			<td title="[[statusId]]">[[statusId]]</td>
 			<td title="[[assignedName]]">[[assignedName]]</td>
-			<td><input type="date" name="startDate[#]" value="[[startDate]]" /></td>
-			<td><input type="date" name="dueDate[#]" value="[[dueDate]]" /></td>
+			<td>
+			<input type="date" name="startDate[#]" value="[[startDate]]" />
+			</td>
+			<td>
+			<input type="date" name="dueDate[#]" value="[[dueDate]]" />
+			</td>
 			<td id="boDays[#]" title="[[boDays]]" class="dec2">[[boDays]]</td>
 			<td id="boDate[#]" title="[[boDate]]">[[boDate]]</td>
-			<td><input type="text" name="days[#]" value="[[days]]" /></td>
-			<td><input type="text" name="suspends[#]" value="[[suspends]]" /></td>
+			<td>
+			<input type="text" name="days[#]" value="[[days]]" />
+			</td>
+			<td>
+			<input type="text" name="suspends[#]" value="[[suspends]]" />
+			</td>
 			<td id="manDays[#]" title="[[manDays]]" class="dec2">[[manDays]]</td>
 			<td id="eoDate[#]" title="[[eoDate]]">[[eoDate]]</td>
 			<td id="eoDays[#]" title="[[eoDays]]" class="dec2">[[eoDays]]</td>

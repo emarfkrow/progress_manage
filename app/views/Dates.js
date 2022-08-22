@@ -1,10 +1,10 @@
 /**
- * 
+ *
  */
- 
- var Dates = {
-	
-	parseYyyyHmmHdd: function(yyyyHmmHdd) {
+
+var Dates = {
+
+	parseYyyyHmmHdd : function(yyyyHmmHdd) {
 		if (!yyyyHmmHdd) {
 			return null;
 		}
@@ -12,7 +12,7 @@
 		return new Date(ymds[0] * 1, ymds[1] - 1, ymds[2]);
 	},
 
-	parseYySmmSdd: function(yySmmSdd) {
+	parseYySmmSdd : function(yySmmSdd) {
 		if (!yySmmSdd) {
 			return null;
 		}
@@ -20,7 +20,7 @@
 		return new Date(2000 + ymds[0] * 1, ymds[1] - 1, ymds[2]);
 	},
 
-	formatYyyyHmmHdd: function(date) {
+	formatYyyyHmmHdd : function(date) {
 		if (!date) {
 			return '';
 		}
@@ -30,7 +30,7 @@
 		return yyyy + '-' + mm + '-' + dd;
 	},
 
-	formatYyHmmHdd: function(date) {
+	formatYyHmmHdd : function(date) {
 		if (!date) {
 			return '';
 		}
@@ -40,4 +40,4 @@
 		var dd = ('0' + date.getDate()).slice(-2);
 		return yy + '/' + mm + '/' + dd;
 	},
-}
+};
