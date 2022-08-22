@@ -1,10 +1,10 @@
 /**
- * 
+ *
  */
 
 var Numbers = {
 
-	formatDec2: function(element) {
+	formatDec2 : function(element) {
 		var $dec2 = $(element);
 		$dec2.css('text-align', 'right');
 		var isInput = $dec2.prop('tagName') == 'INPUT';
@@ -24,5 +24,4 @@ var Numbers = {
 			}
 		}
 	},
-
-}
+};
