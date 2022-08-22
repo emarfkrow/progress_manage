@@ -5,79 +5,44 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+<script src="Dates.js"></script>
+<script src="Numbers.js"></script>
 
 <script type="text/javascript">
 
-	var months = 2;
+	var months = 3;
 	
+	/**
+	 * ダミーデータ作成
+	 */
 	function dummyData() {
-
-		var startDate = new Date();
-		var dueDate = new Date();
-		var boDate = new Date();
-		var eoDate = new Date();
-		var dueDays = 0;
-
-		boDate.setDate(boDate.getDate() + 1);
-
-		var projectDate = new Date(2022, 7, 1);
-
 		var dummyData = {};
 		for (var r = 0; r < 1000; r++) {
-
-			var user = r % 5;
-
-			var days = (r % 9) * 0.5;
-			var suspends = days / 2;
-			dueDate.setDate(startDate.getDate() + days);
-			eoDate.setDate(boDate.getDate() + Math.ceil(days + suspends));
-
-			var planDays = (((dueDate - startDate) / 1000 / 60 / 60 / 24) + 1) * 0.5;
-
-			var exceeds = parseInt((eoDate - dueDate) / 1000 / 60 / 60 / 24);
-
 			var id = 1000 + r;
 			dummyData['#' + id] = {
 				id : '#' + id,
-				projectName : 'project ' + id,
-				projectDate : yySmmSdd(projectDate),
-				version : 'phase ' + id,
+				projectName : '販売WEB',
+				projectDate : Dates.formatYyHmmHdd(new Date(2022, 7, 1)),
+				version : '外部設計',
 				subject : 'subject ' + id,
 				statusId : 'statusId ' + id,
-				assignedName : 'user' + user,
-				//startDate : yySmmSdd(projectDate),
-				// dueDate : yySmmSdd(dueDate),
-				// // doneRatio : '100%',
-				//planDays : planDays,
-				// dueDays : 0,
-				//boDate : yySmmSdd(projectDate),
-				// // days : days + 1,
-				// // suspends : suspends,
-				// days : '',
-				// suspends : '',
-				// // manDays : days + 1 + suspends,
-				// manDays : 0,
-				// eoDate : yySmmSdd(eoDate),
-				// exceeds : exceeds,
+				assignedName : 'user' + ((r % 5) + 1),
 			};
-
-			startDate.setDate(startDate.getDate() + days);
 		}
-
 		return dummyData;
 	};
 
 	$(function() {
 		
+		//リンクをボタン化
 		$('a').button();
-
+		
 		//基準日の初期表示
 		var date = new Date();
-		$('[name="baseYmd"]').val(date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2));
+		$('[name="baseYmd"]').val(Dates.formatYyyyHmmHdd(date));
 
 		//横軸：日付の表示
-		var baseYmd = new Date(Date.parse($('[name="baseYmd"]').val()));
-
+		var baseYmd = Dates.parseYyyyHmmHdd($('[name="baseYmd"]').val());
 		var baseY = baseYmd.getFullYear();
 		var baseM = baseYmd.getMonth();
 		var baseD = baseYmd.getDate();
@@ -91,7 +56,7 @@
 			//日付の取得
 			var date = new Date(baseY, baseM, baseD + i);
 
-			//３カ月分で終了
+			//指定月数分で終了
 			var ym = date.getFullYear() * 100 + date.getMonth();
 			if (ym - baseYm >= months && baseD < date.getDate()) {
 				break;
@@ -105,8 +70,9 @@
 			}
 
 			//セル文字列に退避
-			theadTds += '<td' + classHoliday + '>' + yySmmSdd(date) + '</td>';
-			tbodyTds += '<td id="' + yySmmSdd(date) + '[#]"' + classHoliday + '>&nbsp;</td>';
+			var yySmmSdd = Dates.formatYyHmmHdd(date);
+			theadTds += '<td' + classHoliday + '>' + yySmmSdd + '</td>';
+			tbodyTds += '<td id="' + yySmmSdd + '[#]"' + classHoliday + '>&nbsp;</td>';
 			tfootTds += '<td' + classHoliday + '>&nbsp;</td>';
 		}
 
@@ -120,15 +86,6 @@
 		//縦軸：データの表示
 		bindData(data);
 
-		//予定期間の背景色設定
-		for (var id in data) {
-			var item = data[id];
-			if (!item.startDate || !item.dueDate) {
-				continue;
-			}
-			fillPlan(item);
-		}
-
 		//実績期間のパネル表示
 		addPanels(data);
 
@@ -137,19 +94,20 @@
 		// var offsetLeft = $('table.left')[0].offsetLeft + $('table.left')[0].offsetWidth;
 		// $('div.rightWrapper').css('width', offsetWidth - offsetLeft);
 
-		//高さ調整
-		var offsetHeight = $('body')[0].clientHeight;
-		var offsetTop = $('table.left')[0].offsetTop;
-		var theadHeight = $('table.left thead')[0].offsetHeight;
-		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
-		$('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
-		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+		// //高さ調整
+		// var offsetHeight = $('body')[0].clientHeight;
+		// var offsetTop = $('table.left')[0].offsetTop;
+		// var theadHeight = $('table.left thead')[0].offsetHeight;
+		// var tfootHeight = $('table.left tfoot')[0].offsetHeight;
+		// $('table.left tbody').css('height', offsetHeight - offsetTop - theadHeight - tfootHeight - 25);
+		// $('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
 
 		/**
 		 * スクロール連携
 		 */
 		$('div.rightWrapper').on('scroll', function() {
 			$('table.left tbody').scrollTop(this.scrollTop);
+			bindData(data)
 		});
 
 		/**
@@ -220,7 +178,6 @@
 			var id = names[1];
 			var item = data[id];
 			item[columnName] = this.value;
-			
 			fillPlan(item);
 		});
 
@@ -247,10 +204,10 @@
 		if (!item.startDate || !item.dueDate) {
 			return;
 		}
-		var startDate = parseYyyyHmmHdd(item.startDate);
-		var dueDate = parseYyyyHmmHdd(item.dueDate);
+		var startDate = Dates.parseYyyyHmmHdd(item.startDate);
+		var dueDate = Dates.parseYyyyHmmHdd(item.dueDate);
 		for (var date = startDate; date <= dueDate; date.setDate(date.getDate() + 1)) {
-			var cell = $('table.right tbody [id="' + yySmmSdd(date) + '[' + item.id + ']"]');
+			var cell = $('table.right tbody [id="' + Dates.formatYyHmmHdd(date) + '[' + item.id + ']"]');
 			if (!cell.hasClass('holiday')) {
 				cell.addClass('plan');
 			}
@@ -259,6 +216,23 @@
 
 	function bindData(data) {
 
+		//明細部の許容高さ
+		var offsetHeight = $('body')[0].clientHeight;
+		var offsetTop = $('table.left')[0].offsetTop;
+		var theadHeight = $('table.left thead')[0].offsetHeight;
+		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
+		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - 25;
+		
+		//明細部のスクロール量
+		var leftScrollTop = $('table.left tbody').scrollTop();
+		
+		//明細部の行高さ
+		var trHeight = $('table.left tbody tr:nth-child(1)').height();
+		
+		/*
+		 * 明細部のクリア
+		 */
+		
 		//左側表をリセット
 		var $leftTbody = $('table.left tbody');
 		var leftTbodyHtml = $leftTbody.find('tr:nth-child(1)')[0].outerHTML;
@@ -269,29 +243,75 @@
 		var rightTbodyHtml = $rightTbody.find('tr:nth-child(1)')[0].outerHTML;
 		$rightTbody.html(rightTbodyHtml);
 
+		//明細部の高さをリセット
+		$leftTbody.css('height', '');
+		$('div.rightWrapper').css('height', '');
+		
+		/*
+		 *
+		 */
+
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
+		var trsHeight = 0;
 		var leftTrs = '';
 		var rightTrs = '';
 		for (var r in data) {
-			var item = data[r];
-
-			//左側表文字列に追加
-			var leftTr = leftTbodyHtml.replaceAll('#', item.id);
-			for (var k in item) {
-				leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
+			
+			var leftTr = '';
+			var rightTr = '';
+			
+			trsHeight += trHeight;
+			
+			if (trsHeight < leftScrollTop) {
+				//上側非表示部
+				leftTr = '<tr><td></td></tr>';
+				rightTr = '<tr><td></td></tr>';
+			} else if (tbodyScrollHeight <= trsHeight - trHeight - leftScrollTop) {
+				//下側非表示部
+				leftTr = '<tr><td></td></tr>';
+				rightTr = '<tr><td></td></tr>';
+			} else {
+				
+				var item = data[r];
+	
+				//左側表文字列に追加
+				var leftTr = leftTbodyHtml.replaceAll('#', item.id);
+				for (var k in item) {
+					leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
+				}
+				leftTr = leftTr.replaceAll(/\[\[.+?\]\]/g, '');
+	
+				//右側表文字列に追加
+				var rightTr = rightTbodyHtml.replaceAll('#', item.id);
 			}
-			leftTrs += leftTr.replaceAll(/\[\[.+?\]\]/g, '');
-
-			//右側表文字列に追加
-			rightTrs += rightTbodyHtml.replaceAll('#', item.id);
+			
+			leftTrs += leftTr;
+			rightTrs += rightTr;
 		}
+			
 		$leftTbody.append(leftTrs);
 		$rightTbody.append(rightTrs);
 
+		$leftTbody.css('height', tbodyScrollHeight);
+		$leftTbody.scrollTop(leftScrollTop);
+		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+		$('div.rightWrapper').scrollTop(leftScrollTop);
+		
+		$('.datepicker').datepicker();
+
 		//小数２桁表示
 		$('.dec2').each(function() {
-			dec2(this);
+			Numbers.formatDec2(this);
 		});
+
+		//予定期間の背景色設定
+		for (var id in data) {
+			var item = data[id];
+			if (!item.startDate || !item.dueDate) {
+				continue;
+			}
+			fillPlan(item);
+		}
 	}
 
 	/**
@@ -330,7 +350,7 @@
 			if (item.assignedName == assignedName) {
 
 				//当該行のプロジェクト開始日
-				var projectDate = parseYySmmSdd(item.projectDate);
+				var projectDate = Dates.parseYySmmSdd(item.projectDate);
 				var projectY = projectDate.getFullYear();
 				var projectM = projectDate.getMonth();
 				var projectD = projectDate.getDate();
@@ -352,7 +372,7 @@
 						}
 					}
 				}
-				item.boDate = yySmmSdd(boDate);
+				item.boDate = Dates.formatYyHmmHdd(boDate);
 
 				//稼働日数
 				var days = 0;
@@ -384,7 +404,7 @@
 						}
 					}
 				}
-				item.eoDate = yySmmSdd(eoDate);
+				item.eoDate = Dates.formatYyHmmHdd(eoDate);
 
 				//実績終了数
 				eoDays += item.manDays;
@@ -401,7 +421,7 @@
 
 		//小数２桁表示
 		$('.dec2').each(function() {
-			dec2(this);
+			Numbers.formatDec2(this);
 		});
 	}
 
@@ -420,7 +440,7 @@
 		var $rightTbody = $('table.right tbody');
 
 		//描画基準日
-		var baseYmd = new Date(Date.parse($('[name="baseYmd"]').val()));
+		var baseYmd = Dates.parseYyyyHmmHdd($('[name="baseYmd"]').val());
 
 		//データでループ
 		var panelWrappers = '';
@@ -432,13 +452,13 @@
 				continue;
 			}
 
-			if (parseYySmmSdd(item.eoDate) < baseYmd) {
+			if (Dates.parseYySmmSdd(item.eoDate) < baseYmd) {
 				continue;
 			}
 
 			var boDate = item.boDate;
-			if (parseYySmmSdd(boDate) < baseYmd) {
-				boDate = yySmmSdd(baseYmd);
+			if (Dates.parseYySmmSdd(boDate) < baseYmd) {
+				boDate = Dates.formatYyHmmHdd(baseYmd);
 			}
 
 			//チケットID
@@ -463,71 +483,6 @@
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 	}
 
-	function parseYyyyHmmHdd(yyyyHmmHdd) {
-		if (!yySmmSdd) {
-			return null;
-		}
-		var ymds = yyyyHmmHdd.split('-');
-		return new Date(ymds[0] * 1, ymds[1] - 1, ymds[2]);
-	}
-
-	function parseYySmmSdd(yySmmSdd) {
-		if (!yySmmSdd) {
-			return null;
-		}
-		var ymds = yySmmSdd.split('/');
-		return new Date(2000 + ymds[0] * 1, ymds[1] - 1, ymds[2]);
-	}
-
-	function yyyyHmmHdd(date) {
-		if (!date) {
-			return '';
-		}
-		var yyyy = date.getFullYear();
-		var mm = ('0' + (date.getMonth() + 1)).slice(-2);
-		var dd = ('0' + date.getDate()).slice(-2);
-		return yyyy + '-' + mm + '-' + dd;
-	}
-
-	function yySmmSdd(date) {
-		if (!date) {
-			return '';
-		}
-		var yyyy = date.getFullYear();
-		var yy = yyyy - 2000;
-		var mm = ('0' + (date.getMonth() + 1)).slice(-2);
-		var dd = ('0' + date.getDate()).slice(-2);
-		return yy + '/' + mm + '/' + dd;
-	}
-
-	function yymmdd(date) {
-		var yyyy = date.getFullYear();
-		var yy = yyyy - 2000;
-		var mm = ('0' + (date.getMonth() + 1)).slice(-2);
-		var dd = ('0' + date.getDate()).slice(-2);
-		return '' + yy + mm + dd;
-	}
-
-	function dec2(element) {
-		var $dec2 = $(element);
-		$dec2.css('text-align', 'right');
-		var isInput = $dec2.prop('tagName') == 'INPUT';
-		var val;
-		if (isInput) {
-			val = $dec2.val();
-		} else {
-			val = $dec2.html();
-		}
-		var isNumber = !isNaN(val);
-		if (isNumber) {
-			val = Number(val).toFixed(2).toLocaleString();
-			if (isInput) {
-				$dec2.val(val);
-			} else {
-				$dec2.html(val);
-			}
-		}
-	}
 </script>
 
 <h2>ProgressManage</h2>
@@ -577,8 +532,8 @@
 			<td title="[[subject]]">[[subject]]</td>
 			<td title="[[statusId]]">[[statusId]]</td>
 			<td title="[[assignedName]]">[[assignedName]]</td>
-			<td><input type="date" name="startDate[#]" value="[[startDate]]" /></td>
-			<td><input type="date" name="dueDate[#]" value="[[dueDate]]" /></td>
+			<td><input type="text" name="startDate[#]" value="[[startDate]]" class="datepicker" /></td>
+			<td><input type="text" name="dueDate[#]" value="[[dueDate]]" class="datepicker"/></td>
 			<td id="boDays[#]" title="[[boDays]]" class="dec2">[[boDays]]</td>
 			<td id="boDate[#]" title="[[boDate]]">[[boDate]]</td>
 			<td><input type="text" name="days[#]" value="[[days]]" /></td>

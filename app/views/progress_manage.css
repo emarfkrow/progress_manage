@@ -5,7 +5,9 @@
 		font-size: small;
 	}
 	
-	a{padding: 0 5 3 5 !important;} 
+	a {
+		padding: 0 5 3 5 !important;
+	} 
 
 /* テーブル */
 	table {
