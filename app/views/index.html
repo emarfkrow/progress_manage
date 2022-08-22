@@ -216,7 +216,7 @@
 
 	function bindData(data) {
 
-		//明細部の許容高さ
+		//明細部のスクロール高さ
 		var offsetHeight = $('body')[0].clientHeight;
 		var offsetTop = $('table.left')[0].offsetTop;
 		var theadHeight = $('table.left thead')[0].offsetHeight;
@@ -243,7 +243,7 @@
 		var rightTbodyHtml = $rightTbody.find('tr:nth-child(1)')[0].outerHTML;
 		$rightTbody.html(rightTbodyHtml);
 
-		//明細部の高さをリセット
+		//明細部の高さを一旦リセット
 		$leftTbody.css('height', '');
 		$('div.rightWrapper').css('height', '');
 		
@@ -297,7 +297,15 @@
 		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
 		$('div.rightWrapper').scrollTop(leftScrollTop);
 		
-		$('.datepicker').datepicker();
+		$('.datepicker').datepicker({
+            dateFormat: 'yy-mm-dd',
+            dayNamesMin: ['日', '月', '火', '水', '木', '金', '土'],
+            monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+            showMonthAfterYear: true,
+            yearSuffix: '年',
+            showOtherMonths: true,
+            selectOtherMonths: true
+        });
 
 		//小数２桁表示
 		$('.dec2').each(function() {
@@ -493,7 +501,7 @@
 		<button type="button" name="redraw">実績再描画</button>
 	</div>
 </form>
-<table class="left">
+<table class="progress left">
 	<thead>
 		<tr>
 			<th>順番</th>
@@ -566,7 +574,7 @@
 	</tfoot>
 </table>
 <div class="rightWrapper">
-	<table class="right">
+	<table class="progress right">
 		<thead>
 			<tr></tr>
 		</thead>

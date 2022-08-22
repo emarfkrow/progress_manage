@@ -10,24 +10,24 @@
 	} 
 
 /* テーブル */
-	table {
+	table.progress {
 		border-spacing: 0;
 		border-left: solid 1px #ccc;
 		width: max-content;
 	}
 
 /* 明細部 */
-	tbody {
+	table.progress tbody {
 		background-color: #eee;
 	}
 
 /* 明細部の１行目 */
-	tbody tr:nth-child(1) {
+	table.progress tbody tr:nth-child(1) {
 		display: none;
 	}
 
 /* セル全般 */
-	th, td {
+	table.progress th, table.progress td {
 		border-bottom: solid 1px #ccc;
 		border-right: solid 1px #ccc;
 		height: 24px;
@@ -35,35 +35,35 @@
 	}
 
 /* タイトル列 */
-	th {
+	table.progress th {
 		background-color: #dfd;
 		font-weight: normal;
 	}
 
 /* 詳細列 */
-	td {
+	table.progress td {
 		background-color: #fff;
 	}
 
 /* 詳細列内容 */
-	td * {
+	table.progress td * {
 		width: -webkit-fill-available;
 	}
 
 /* thead/tfootのセル */
-	thead th, thead td, tfoot th, tfoot td {
+	table.progress thead th, table.progress thead td, table.progress tfoot th, table.progress tfoot td {
 		border-top: solid 1px #ccc;
 	}
 
 /* ヘッダ部の詳細列 */
-	thead td {
+	table.progress thead td {
 		background-color: #dfd;
 		height: 60px;
 		text-align: center;
 	}
 
 /* フッタ部の詳細列 */
-	tfoot td {
+	table.progress tfoot td {
 		background-color: #dfd;
 		text-align: center;
 	}
@@ -214,11 +214,11 @@
 		border-bottom-style: none;
 	}
 
-	.holiday {
+	table.right .holiday {
 		background-color: #fee;
 	}
 
-	.plan {
+	table.right .plan {
 		background-color: #eef;
 	}
 
