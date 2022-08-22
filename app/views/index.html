@@ -32,6 +32,8 @@
 		}
 		return dummyData;
 	};
+	
+	var users = { 0966: '福尾' };
 
 	$(function() {
 		
@@ -62,7 +64,7 @@
 		bindData(data);
 
 		//実績期間のパネル表示
-		addPanels(data);
+		redrawPanels(data);
 
 		// //幅調整
 		// var offsetWidth = $('body')[0].offsetWidth;
@@ -80,7 +82,7 @@
 		$('[name="baseYmd"]').on('change', function() {
 			setDays(data);
 			bindData(data);
-			addPanels(data);
+			redrawPanels(data);
 		});
 		
 		/**
@@ -89,7 +91,7 @@
 		$('div.rightWrapper').on('scroll', function() {
 			$('table.left tbody').scrollTop(this.scrollTop);
 			bindData(data);
-			addPanels(data);
+			redrawPanels(data);
 		});
 
 		/**
@@ -118,7 +120,7 @@
 			
 			calcData(data, thisItem.assignedName);
 			bindData(data);
-			addPanels(data);
+			redrawPanels(data);
 		});
 
 		/**
@@ -152,7 +154,7 @@
 			
 			calcData(data, thisItem.assignedName);
 			bindData(data);
-			addPanels(data);
+			redrawPanels(data);
 		});
 
 		/**
@@ -330,15 +332,15 @@
 		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
 		$('div.rightWrapper').scrollTop(leftScrollTop);
 		
-		$('.datepicker').datepicker({
-            dateFormat: 'yy-mm-dd',
-            dayNamesMin: ['日', '月', '火', '水', '木', '金', '土'],
-            monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-            showMonthAfterYear: true,
-            yearSuffix: '年',
-            showOtherMonths: true,
-            selectOtherMonths: true
-        });
+// 		$('.datepicker').datepicker({
+//             dateFormat: 'yy-mm-dd',
+//             dayNamesMin: ['日', '月', '火', '水', '木', '金', '土'],
+//             monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+//             showMonthAfterYear: true,
+//             yearSuffix: '年',
+//             showOtherMonths: true,
+//             selectOtherMonths: true
+//         });
 
 		//小数２桁表示
 		$('.dec2').each(function() {
@@ -372,7 +374,7 @@
 		}
 
 		//実績パネルを表示
-		addPanels(data);
+		redrawPanels(data);
 	}
 
 	/**
@@ -451,6 +453,7 @@
 				eoDays += item.manDays;
 				item.eoDays = eoDays;
 
+				//当該行の再計算結果を表示
 				var $leftTr = $('table.left tbody tr[id="leftTr[' + id + ']"]');
 				$leftTr.find('[id="boDays[' + id + ']"]').html(item.boDays);
 				$leftTr.find('[id="boDate[' + id + ']"]').html(item.boDate);
@@ -469,7 +472,7 @@
 	/**
 	 * データの実績開始日・実績終了日から、パネルを描画
 	 */
-	function addPanels(data) {
+	function redrawPanels(data) {
 
 		//実績を一旦全削除
 		$('.panelWrapper').remove();
@@ -498,6 +501,7 @@
 				continue;
 			}
 
+			//実績開始日が基準日より過去なら基準日から描画
 			var boDate = item.boDate;
 			if (Dates.parseYySmmSdd(boDate) < baseYmd) {
 				boDate = Dates.formatYyHmmHdd(baseYmd);
@@ -506,11 +510,13 @@
 			//チケットID
 			var id = item.id;
 
-			//実績開始日セルから、パネルの上座標・左座標を取得
+			//表示されていない行ならスキップ
 			var $boDateCell = $rightTbody.find('[id="' + boDate + '[' + id + ']"]');
 			if ($boDateCell.length == 0) {
 				continue;
 			}
+			
+			//実績開始日セルから、パネルの上座標・左座標を取得
 			var l = $boDateCell[0].offsetLeft - 1;
 			var t = $boDateCell[0].offsetTop - theadHeight;
 
@@ -525,6 +531,7 @@
 			panelWrappers += panelWrapper;
 		}
 
+		//全ての実績を一度に追加
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 	}
 
@@ -534,9 +541,9 @@
 <form>
 	<label>基準日 <input type="date" name="baseYmd" />
 	</label>
-	<div class="submits">
-		<button type="button" name="redraw">実績再描画</button>
-	</div>
+<!-- 	<div class="submits"> -->
+<!-- 		<button type="button" name="redraw">実績再描画</button> -->
+<!-- 	</div> -->
 </form>
 <table class="progress left">
 	<thead>
