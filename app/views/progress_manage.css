@@ -145,8 +145,10 @@
 	}
 	/* 実績開始数 */
 	table.left tr td:nth-child(11) {
-		min-width: 4rem;
-		max-width: 4rem;
+		min-width: 0rem;
+		max-width: 0rem;
+		border-width: 0;
+		padding: 0;
 	}
 	/* 実績開始日 */
 	table.left tr td:nth-child(12) {
@@ -165,8 +167,10 @@
 	}
 	/* 実績日数 */
 	table.left tr td:nth-child(15) {
-		min-width: 3rem;
-		max-width: 3rem;
+		min-width: 0rem;
+		max-width: 0rem;
+		border-width: 0;
+		padding: 0;
 	}
 	/* 実績終了日 */
 	table.left tr td:nth-child(16) {
@@ -175,8 +179,10 @@
 	}
 	/* 実績終了数 */
 	table.left tr td:nth-child(17) {
-		min-width: 4rem;
-		max-width: 4rem;
+		min-width: 0rem;
+		max-width: 0rem;
+		border-width: 0;
+		padding: 0;
 	}
 
 
