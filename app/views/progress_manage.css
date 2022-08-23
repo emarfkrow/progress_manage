@@ -196,8 +196,14 @@ table.left tr td:nth-child(17) {
  */
 
 div.rightWrapper {
+	background-color: #eee;
 	overflow-x: scroll;
 	overflow-y: scroll;
+}
+
+table.right td {
+	min-width: 20px;
+	max-width: 20px;
 }
 
 table.right thead td {
@@ -209,10 +215,8 @@ table.right thead td {
 	font-size: xx-small;
 	height: 56px;
 	z-index: 1;
-}
-
-table.right td {
-	width: 20px;
+	min-width: 19px;
+	max-width: 19px;
 }
 
 table.right tfoot td {
