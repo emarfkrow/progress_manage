@@ -108,14 +108,6 @@ table.left tr td:nth-child(3) {
 	min-width: 8rem;
 	max-width: 8rem;
 }
-/* プロジェクト開始日 */
-table.left tr td:nth-child(4) {
-	min-width: 0rem;
-	max-width: 0rem;
-	text-align: center;
-	border-width: 0;
-	padding: 0;
-}
 /* バージョン */
 table.left tr td:nth-child(5) {
 	min-width: 6rem;
