@@ -1,5 +1,5 @@
-Redmine::Plugin.register :broken_down_works do
-  name 'Broken Down Works plugin'
+Redmine::Plugin.register :progress_manage do
+  name 'Progress Manage plugin'
   author 'Author name'
   description 'This is a plugin for Redmine'
   version '0.0.1'

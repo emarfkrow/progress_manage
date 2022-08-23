@@ -17,7 +17,8 @@
 
 
 
-ruby bin/rails generate redmine_plugin       BrokenDownWorks
-ruby bin/rails generate redmine_plugin_model BrokenDownWorks broken_down_work user_id:integer yyyy:string mm:string dd:string bo_time:string eo_time:string issue_id:integer activity_id:integer comments:string
+ruby bin/rails generate redmine_plugin            ProgressManage
+ruby bin/rails generate redmine_plugin_model      ProgressManage actual_span issue_id:integer bo_days:integer bo_date:date days:integer suspends:integer man_days:integer eo_date:date eo_days:integer
+ruby bin/rails generate redmine_plugin_model      ProgressManage actual_holiday holiday:date
 bundle exec rake redmine:plugins:migrate
-ruby bin/rails generate redmine_plugin_controller BrokenDownWorks broken_down_work index regist
+ruby bin/rails generate redmine_plugin_controller ProgressManage progress_manage index

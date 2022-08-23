@@ -10,15 +10,24 @@
 <script src="Numbers.js"></script>
 
 <script type="text/javascript">
-
 	//表示月数
 	var months = 3;
 
 	//ユーザリスト
-	var userIds = { "0966": '福尾 利行', "0439": '村田 一人' };
-	
+	var userIds = {
+		"0966" : '福尾 利行',
+		"0439" : '村田 一人'
+	};
+
 	//ステータスリスト
-	var statusIds = { 1: '新規', 2: '進行中', 3: '解決', 4: 'フィードバック', 5: '終了', 6: '却下' };
+	var statusIds = {
+		1 : '新規',
+		2 : '進行中',
+		3 : '解決',
+		4 : 'フィードバック',
+		5 : '終了',
+		6 : '却下'
+	};
 
 	/**
 	 * 初期化処理
@@ -30,13 +39,13 @@
 
 		//リンクをボタン化
 		$('a').button();
-		
+
 		//ステータスプルダウンを設定
 		$('[name^="statusId"]').append('<option></option>');
 		for (var statusId in statusIds) {
 			$('[name^="statusId"]').append('<option value="' + statusId + '">' + statusIds[statusId] + '</option>');
 		}
-		
+
 		//担当者プルダウンを設定
 		$('[name^="selAssignedId"]').append('<option></option>');
 		for (var userId in userIds) {
@@ -219,7 +228,7 @@
 			calcActual(data, thisItem.assignedId);
 			redrawPanels(data);
 		});
-		
+
 		/**
 		 * 実績日数エンターイベント（下にカーソル移動するだけ）
 		 */
@@ -330,8 +339,8 @@
 		var trHeight = $('table.left tbody tr:nth-child(1)').height();
 
 		/*
-		 * 明細部のクリア
-		 */
+		* 明細部のクリア
+		*/
 
 		//左側表をリセット
 		var $leftTbody = $('table.left tbody');
@@ -350,8 +359,8 @@
 		/*
 		 *
 		 */
-		 
-		 var assignedId = $('[name="selAssignedId"]').val();
+
+		var assignedId = $('[name="selAssignedId"]').val();
 
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
 		var trsHeight = 0;
@@ -360,8 +369,8 @@
 		for (var id in data) {
 
 			var item = data[id];
-			
-			if(assignedId && item.assignedId != assignedId) {
+
+			if (assignedId && item.assignedId != assignedId) {
 				continue;
 			}
 
@@ -374,7 +383,7 @@
 				//上側の非表示行か下側の非表示行なら空行を設定
 				leftTr = '<tr><td></td></tr>';
 				rightTr = '<tr><td></td></tr>';
-				
+
 			} else {
 
 				//左側表文字列に追加
@@ -397,11 +406,11 @@
 		$rightTbody.append(rightTrs);
 
 		var leftTbodyHeight = $leftTbody.height();
-		
+
 		//反映後に、左側表の高さ調整と元の位置までスクロール
 		$leftTbody.css('height', tbodyScrollHeight);
 		$leftTbody.scrollTop(leftScrollTop);
-		
+
 		//反映後に、右側表の高さ調整と元の位置までスクロール
 		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
 		$rightTbody.css('height', tbodyScrollHeight);
@@ -410,18 +419,18 @@
 			$('table.right thead').css('display', 'block');
 			$('table.right tbody').css('display', 'block');
 			$('table.right tfoot').css('display', 'block');
-		}else{
+		} else {
 			$('table.right thead').css('display', '');
 			$('table.right tbody').css('display', '');
 			$('table.right tfoot').css('display', '');
 		}
 		$('div.rightWrapper').scrollTop(leftScrollTop);
-		
+
 		for (var id in data) {
 			var item = data[id];
 			$('[name="statusId[' + id + ']"]').val([item.statusId]);
 			$('[name="assignedId[' + id + ']"]').val([item.assignedId]);
-		}		
+		}
 
 		//小数２桁表示
 		$('.dec2').each(function() {
@@ -448,12 +457,12 @@
 			}
 		}
 	}
-	
+
 	/**
 	 * 指定した担当者について、実績日数から実績期間を再計算
 	 */
 	function calcActual(data, assignedId) {
-		
+
 		//実績基準日
 		var baseBoDate = null;
 
@@ -478,7 +487,7 @@
 						baseBoDate = new Date();
 					}
 				}
-				
+
 				//実績開始日
 				var boDate = new Date(baseBoDate.getFullYear(), baseBoDate.getMonth(), baseBoDate.getDate());
 				if (item.boDays > 0) {
@@ -566,7 +575,7 @@
 
 		//実績パネル文字列
 		var panelWrappers = '';
-		
+
 		//データでループ
 		for (var id in data) {
 			var item = data[id];
@@ -626,7 +635,6 @@
 			<th>順番</th>
 			<th>id</th>
 			<td>プロジェクト</td>
-			<td>開始日</td>
 			<td>バージョン</td>
 			<td>題名</td>
 			<td>ステータス</td>
@@ -661,7 +669,6 @@
 			<th><a href="javascript:void(0);" id="upper[#]">↑</a><a href="javascript:void(0);" id="downer[#]">↓</a></th>
 			<th title="[[id]]">[[id]]</th>
 			<td title="[[projectName]]">[[projectName]]</td>
-			<td title="[[projectDate]]">[[projectDate]]</td>
 			<td title="[[version]]">[[version]]</td>
 			<td title="[[subject]]">[[subject]]</td>
 			<td><select name="statusId[#]"></select></td>
@@ -689,7 +696,6 @@
 		<tr>
 			<th>&nbsp;</th>
 			<th>&nbsp;</th>
-			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
 			<td>&nbsp;</td>
