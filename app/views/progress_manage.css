@@ -110,13 +110,16 @@ table.left tr td:nth-child(3) {
 }
 /* プロジェクト開始日 */
 table.left tr td:nth-child(4) {
-	min-width: 5rem;
-	max-width: 5rem;
+	min-width: 0rem;
+	max-width: 0rem;
+	text-align: center;
+	border-width: 0;
+	padding: 0;
 }
-/* フェーズ */
+/* バージョン */
 table.left tr td:nth-child(5) {
-	min-width: 5rem;
-	max-width: 5rem;
+	min-width: 6rem;
+	max-width: 6rem;
 }
 /* 題名 */
 table.left tr td:nth-child(6) {
@@ -127,11 +130,12 @@ table.left tr td:nth-child(6) {
 table.left tr td:nth-child(7) {
 	min-width: 7rem;
 	max-width: 7rem;
+	text-align: center;
 }
 /* 担当者 */
 table.left tr td:nth-child(8) {
-	min-width: 4rem;
-	max-width: 4rem;
+	min-width: 5rem;
+	max-width: 5rem;
 }
 /* 開始日 */
 table.left tr td:nth-child(9) {
@@ -154,6 +158,7 @@ table.left tr td:nth-child(11) {
 table.left tr td:nth-child(12) {
 	min-width: 5rem;
 	max-width: 5rem;
+	text-align: center;
 }
 /* 稼働日数 */
 table.left tr td:nth-child(13) {
@@ -176,6 +181,7 @@ table.left tr td:nth-child(15) {
 table.left tr td:nth-child(16) {
 	min-width: 5rem;
 	max-width: 5rem;
+	text-align: center;
 }
 /* 実績終了数 */
 table.left tr td:nth-child(17) {

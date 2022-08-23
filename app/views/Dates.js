@@ -30,7 +30,7 @@ var Dates = {
 		return yyyy + '-' + mm + '-' + dd;
 	},
 
-	formatYyHmmHdd : function(date) {
+	formatYySmmSdd : function(date) {
 		if (!date) {
 			return '';
 		}
