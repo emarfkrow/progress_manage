@@ -1,21 +1,37 @@
 class ProgressManageController < ApplicationController
 
-  #
-  # 初期表示
-  #
-  def index
-  end
+    #
+    # 初期表示
+    #
+    def index
+    end
 
-  def holidays
-  end
+    def holidays
+        @actualHolidays = ActualHoliday.all
+        render json: @actualHolidays
+    end
 
-  def statuses
-  end
+    def statuses
+    end
 
-  def users
-  end
+    def users
+    	
+        jsonText = ""
+        users = User.all
+        users.each{|user|
+            if jsonText == ""
+                jsonText += "{"
+            else
+                jsonText += ","
+            end
+            jsonText += "\"" + user.id.to_s + "\":\"" + user.lastname + " " + user.firstname + "\""
+        }
+        jsonText += "}"
 
-  def search
-  end
+        render json: JSON.parse(jsonText)
+    end
+
+    def search
+    end
 
 end

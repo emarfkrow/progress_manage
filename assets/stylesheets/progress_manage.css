@@ -1,0 +1,255 @@
+@charset "UTF-8";
+
+/* 全体のフォントサイズ */
+/** {
+ font-size: small;
+ }*/
+
+a {
+	padding: 0 5 3 5 !important;
+}
+
+form > div {
+	display: inline-block;
+	margin-right: 1rem;
+}
+
+label::after {
+	content: '：';
+}
+
+/* テーブル */
+table.progress {
+	border-spacing: 0;
+	border-left: solid 1px #ccc;
+	clear: both;
+	width: max-content;
+}
+
+/* 明細部 */
+table.progress tbody {
+	background-color: #eee;
+}
+
+/* 明細部の１行目 */
+table.progress tbody tr:nth-child(1) {
+	display: none;
+}
+
+/* セル全般 */
+table.progress th, table.progress td {
+	border-bottom: solid 1px #ccc;
+	border-right: solid 1px #ccc;
+	height: 24px;
+	white-space: nowrap;
+}
+
+/* タイトル列 */
+table.progress th {
+	background-color: #dfd;
+	font-weight: normal;
+}
+
+/* 詳細列 */
+table.progress td {
+	background-color: #fff;
+}
+
+/* 詳細列内容 */
+table.progress td * {
+	width: -webkit-fill-available;
+}
+
+/* thead/tfootのセル */
+table.progress thead th, table.progress thead td, table.progress tfoot th, table.progress tfoot td {
+	border-top: solid 1px #ccc;
+}
+
+/* ヘッダ部の詳細列 */
+table.progress thead td {
+	background-color: #dfd;
+	height: 60px;
+	text-align: center;
+}
+
+/* フッタ部の詳細列 */
+table.progress tfoot td {
+	background-color: #dfd;
+	text-align: center;
+}
+
+/* 送信ボタンエリア */
+div.submits {
+	float: right;
+}
+
+/*
+ * 左側表
+ */
+
+table.left {
+	float: left;
+}
+
+table.left thead, table.left tbody, table.left tfoot {
+	display: block;
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
+table.left th, table.left td {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* 入替 */
+table.left tr th:nth-child(1) {
+	min-width: 4rem;
+	max-width: 4rem;
+}
+/* id */
+table.left tr th:nth-child(2) {
+	min-width: 4rem;
+	max-width: 4rem;
+}
+/* プロジェクト */
+table.left tr td:nth-child(3) {
+	min-width: 8rem;
+	max-width: 8rem;
+}
+/* バージョン */
+table.left tr td:nth-child(4) {
+	min-width: 6rem;
+	max-width: 6rem;
+}
+/* 題名 */
+table.left tr td:nth-child(5) {
+	min-width: 15rem;
+	max-width: 15rem;
+}
+/* ステータス */
+table.left tr td:nth-child(6) {
+	min-width: 7rem;
+	max-width: 7rem;
+	text-align: center;
+}
+/* 担当者 */
+table.left tr td:nth-child(7) {
+	min-width: 5rem;
+	max-width: 5rem;
+}
+/* 開始日 */
+table.left tr td:nth-child(8) {
+	min-width: 5rem;
+	max-width: 5rem;
+}
+/* 期日 */
+table.left tr td:nth-child(9) {
+	min-width: 5rem;
+	max-width: 5rem;
+}
+/* 実績開始数 */
+table.left tr td:nth-child(10) {
+	min-width: 0rem;
+	max-width: 0rem;
+	border-width: 0;
+	padding: 0;
+}
+/* 実績開始日 */
+table.left tr td:nth-child(11) {
+	min-width: 5rem;
+	max-width: 5rem;
+	text-align: center;
+}
+/* 稼働日数 */
+table.left tr td:nth-child(12) {
+	min-width: 4rem;
+	max-width: 4rem;
+}
+/* 中断日数 */
+table.left tr td:nth-child(13) {
+	min-width: 4rem;
+	max-width: 4rem;
+}
+/* 実績日数 */
+table.left tr td:nth-child(14) {
+	min-width: 0rem;
+	max-width: 0rem;
+	border-width: 0;
+	padding: 0;
+}
+/* 実績終了日 */
+table.left tr td:nth-child(15) {
+	min-width: 5rem;
+	max-width: 5rem;
+	text-align: center;
+}
+/* 実績終了数 */
+table.left tr td:nth-child(16) {
+	min-width: 0rem;
+	max-width: 0rem;
+	border-width: 0;
+	padding: 0;
+}
+
+/*
+ * 右側表
+ */
+
+div.rightWrapper {
+	background-color: #eee;
+	overflow-x: scroll;
+	overflow-y: scroll;
+}
+
+table.right td {
+	min-width: 20px;
+	max-width: 20px;
+}
+
+table.right thead td {
+	position: sticky;
+	top: 0;
+	left: 0;
+	writing-mode: vertical-rl;
+	text-orientation: sideways-right;
+	font-size: xx-small;
+	height: 56px;
+	z-index: 1;
+	min-width: 19px;
+	max-width: 19px;
+}
+
+table.right tfoot td {
+	position: sticky;
+	bottom: 0;
+	left: 0;
+}
+
+table.right tbody tr:last-child td {
+	border-bottom-style: none;
+}
+
+table.right .holiday {
+	background-color: #fee;
+}
+
+table.right .plan {
+	background-color: #eef;
+}
+
+.panelWrapper {
+	position: relative;
+}
+
+.panel {
+	position: absolute;
+	background-color: khaki;
+	width: 98%;
+	border-radius: 5px;
+	border: solid 1px #ccc;
+	margin-top: -1px;
+	opacity: 0.5;
+	font-size: small;
+}
