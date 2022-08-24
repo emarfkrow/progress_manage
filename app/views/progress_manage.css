@@ -9,10 +9,20 @@ a {
 	padding: 0 5 3 5 !important;
 }
 
+form>div {
+	display: inline-block;
+	margin-right: 1rem;
+}
+
+label::after {
+	content: '：';
+}
+
 /* テーブル */
 table.progress {
 	border-spacing: 0;
 	border-left: solid 1px #ccc;
+	clear: both;
 	width: max-content;
 }
 
@@ -93,7 +103,7 @@ table.left th, table.left td {
 	white-space: nowrap;
 }
 
-/* 順番 */
+/* 入替 */
 table.left tr th:nth-child(1) {
 	min-width: 4rem;
 	max-width: 4rem;
@@ -109,74 +119,74 @@ table.left tr td:nth-child(3) {
 	max-width: 8rem;
 }
 /* バージョン */
-table.left tr td:nth-child(5) {
+table.left tr td:nth-child(4) {
 	min-width: 6rem;
 	max-width: 6rem;
 }
 /* 題名 */
-table.left tr td:nth-child(6) {
+table.left tr td:nth-child(5) {
 	min-width: 15rem;
 	max-width: 15rem;
 }
 /* ステータス */
-table.left tr td:nth-child(7) {
+table.left tr td:nth-child(6) {
 	min-width: 7rem;
 	max-width: 7rem;
 	text-align: center;
 }
 /* 担当者 */
-table.left tr td:nth-child(8) {
+table.left tr td:nth-child(7) {
 	min-width: 5rem;
 	max-width: 5rem;
 }
 /* 開始日 */
-table.left tr td:nth-child(9) {
+table.left tr td:nth-child(8) {
 	min-width: 5rem;
 	max-width: 5rem;
 }
 /* 期日 */
-table.left tr td:nth-child(10) {
+table.left tr td:nth-child(9) {
 	min-width: 5rem;
 	max-width: 5rem;
 }
 /* 実績開始数 */
-table.left tr td:nth-child(11) {
+table.left tr td:nth-child(10) {
 	min-width: 0rem;
 	max-width: 0rem;
 	border-width: 0;
 	padding: 0;
 }
 /* 実績開始日 */
-table.left tr td:nth-child(12) {
+table.left tr td:nth-child(11) {
 	min-width: 5rem;
 	max-width: 5rem;
 	text-align: center;
 }
 /* 稼働日数 */
-table.left tr td:nth-child(13) {
+table.left tr td:nth-child(12) {
 	min-width: 4rem;
 	max-width: 4rem;
 }
 /* 中断日数 */
-table.left tr td:nth-child(14) {
+table.left tr td:nth-child(13) {
 	min-width: 4rem;
 	max-width: 4rem;
 }
 /* 実績日数 */
-table.left tr td:nth-child(15) {
+table.left tr td:nth-child(14) {
 	min-width: 0rem;
 	max-width: 0rem;
 	border-width: 0;
 	padding: 0;
 }
 /* 実績終了日 */
-table.left tr td:nth-child(16) {
+table.left tr td:nth-child(15) {
 	min-width: 5rem;
 	max-width: 5rem;
 	text-align: center;
 }
 /* 実績終了数 */
-table.left tr td:nth-child(17) {
+table.left tr td:nth-child(16) {
 	min-width: 0rem;
 	max-width: 0rem;
 	border-width: 0;
