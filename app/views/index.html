@@ -5,15 +5,13 @@
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
 <script src="Dates.js"></script>
 <script src="Numbers.js"></script>
-
 <script type="text/javascript">
-
 	//表示月数
 	var months = 3;
 
 	var holidays = {};
-	
-	var data = {}; 
+
+	var data = {};
 
 	/**
 	 * 初期化処理
@@ -21,7 +19,7 @@
 	$(function() {
 
 		//リンクをボタン化
-		$('a').button();
+		$('.progress a').button();
 
 		//表示基準日の初期表示
 		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(new Date()));
@@ -64,10 +62,10 @@
 			bindRows(data);
 			redrawPanels(data);
 		});
-		
+
 		/* ******************************
-		 * イベント登録
-		 *******************************/
+		* イベント登録
+		*******************************/
 
 		/**
 		 * 表示基準日変更イベント
@@ -82,7 +80,7 @@
 		 * 休日設定変更イベント
 		 */
 		$('[name="holidays"]').on('change', function() {
-			
+
 			holidays = {};
 			var values = this.value.split('\n');
 			for (var i in values) {
@@ -196,6 +194,8 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
+			//チケット内容を更新
+			postIssue(thisItem)
 		});
 
 		/**
@@ -209,6 +209,8 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
+			//チケット内容を更新
+			postIssue(thisItem)
 			//実績のみ再描画
 			calcActuals(data);
 			redrawPanels(data);
@@ -225,6 +227,8 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
+			//チケット内容を更新
+			postIssue(thisItem)
 			//当該行の予定期間を再描画
 			fillPlan(item);
 		});
@@ -271,29 +275,46 @@
 		});
 	});
 	
-	function getJson(url, callback) {
-		
-		var urls = url.split('/'); //dummy対応
-		var cb = urls[urls.length - 1]; //dummy対応
+	function postIssue(item) {
+		postJson('./progress_manage/putIssue',
+			{
+				id: item.id,
+				status_id: item.statusId,
+				assigned_to_id: item.assignedId,
+				start_date: item.startDate,
+				due_date: item.dueDate,
+			},
+			function(json){
+			}
+		)
+	}
 
+	function getJson(url, callback) {
+		ajaxJson(url, 'get', null, callback);
+	}
+
+	function postJson(url, dataJson, callback) {
+		ajaxJson(url, 'post', dataJson, callback);
+	}
+	
+	function ajaxJson(url, method, dataJson, callback) {
 		$.ajax({
 			url : url,
-			type : 'get',
-			
-			crossDomain: true, //dummy対応
+			type : method,
+			data : dataJson,
 			dataType : 'jsonp', //dummy対応
-			jsonpCallback: cb //dummy対応
-			
+			crossDomain: true, //dummy対応
+			jsonpCallback: url.split('/')[url.split('/').length - 1] //dummy対応
 		}).fail(function(jqXHR, textStatus, errorThrown) {
-			
+
 			console.log(jqXHR);
 			console.log(textStatus);
 			console.log(errorThrown);
-			
+
 		}).done(function(json, textStatus, jqXHR) {
-			
+
 			callback(json);
-			
+
 		}).always(function(a, b, c) {
 		});
 	}
@@ -590,6 +611,21 @@
 				$leftTr.find('[id="manDays[' + id + ']"]').html(item.manDays);
 				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
+				
+				postJson('./progress_manage/putActualSpan',
+					{
+						id: id,
+						bo_days: item.boDays,
+						bo_date: item.boDate,
+						days: item.days,
+						suspends: item.suspends,
+						man_days: item.manDays,
+						eo_date: item.eoDate,
+						eo_days: item.eoDays,
+					},
+					function(json){
+					}
+				)
 			}
 		}
 
@@ -666,109 +702,113 @@
 
 </script>
 
-<h2>ProgressManage</h2>
-<form style="position: absolute; right: 10rem; top: 0;">
-	<div>
-		<label for="dispBaseYmd">表示基準日</label><input type="date" id="dispBaseYmd" name="dispBaseYmd" />
-	</div>
-	<div>
-		<label for="holidays">休日設定</label><textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;"></textarea>
-	</div>
-</form>
-<table class="progress left">
-	<thead>
-		<tr>
-			<th>入替</th>
-			<th>id</th>
-			<td>プロジェクト</td>
-			<td>バージョン</td>
-			<td>題名</td>
-			<td>ステータス</td>
-			<td style="white-space: normal;">担当者<select name="selAssignedId"></select></td>
-			<td>開始日</td>
-			<td>期日</td>
-			<td>実績
-			<br>
-			開始数 </td>
-			<td>実績
-			<br>
-			開始日 </td>
-			<td>稼働
-			<br>
-			日数 </td>
-			<td>中断
-			<br>
-			日数 </td>
-			<td>実績
-			<br>
-			日数 </td>
-			<td>実績
-			<br>
-			終了日 </td>
-			<td>実績
-			<br>
-			終了数 </td>
-		</tr>
-	</thead>
-	<tbody>
-		<tr id="leftTr[#]">
-			<th><a href="javascript:void(0);" id="upper[#]">↑</a><a href="javascript:void(0);" id="downer[#]">↓</a></th>
-			<th title="[[id]]">[[id]]</th>
-			<td title="[[projectName]]">[[projectName]]</td>
-			<td title="[[version]]">[[version]]</td>
-			<td title="[[subject]]">[[subject]]</td>
-			<td><select name="statusId[#]"></select></td>
-			<td><select name="assignedId[#]"></select></td>
-			<td>
-			<input type="date" name="startDate[#]" value="[[startDate]]" />
-			</td>
-			<td>
-			<input type="date" name="dueDate[#]" value="[[dueDate]]" />
-			</td>
-			<td id="boDays[#]" title="[[boDays]]" class="dec2">[[boDays]]</td>
-			<td id="boDate[#]" title="[[boDate]]">[[boDate]]</td>
-			<td>
-			<input type="text" name="days[#]" value="[[days]]" />
-			</td>
-			<td>
-			<input type="text" name="suspends[#]" value="[[suspends]]" />
-			</td>
-			<td id="manDays[#]" title="[[manDays]]" class="dec2">[[manDays]]</td>
-			<td id="eoDate[#]" title="[[eoDate]]">[[eoDate]]</td>
-			<td id="eoDays[#]" title="[[eoDays]]" class="dec2">[[eoDays]]</td>
-		</tr>
-	</tbody>
-	<tfoot>
-		<tr>
-			<th>&nbsp;</th>
-			<th>&nbsp;</th>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-			<td>&nbsp;</td>
-		</tr>
-	</tfoot>
-</table>
-<div class="rightWrapper">
-	<table class="progress right">
+<h2>進捗管理</h2>
+<div class="progress">
+	<form style="position: absolute; right: 10rem; margin-top: -2.5rem;">
+		<div>
+			<label for="dispBaseYmd">表示基準日</label>
+			<input type="date" id="dispBaseYmd" name="dispBaseYmd" />
+		</div>
+		<div>
+			<label for="holidays">休日設定</label>
+			<textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;"></textarea>
+		</div>
+	</form>
+	<table class="progress left">
 		<thead>
-			<tr></tr>
+			<tr>
+				<th>入替</th>
+				<th>id</th>
+				<td>プロジェクト</td>
+				<td>バージョン</td>
+				<td>題名</td>
+				<td>ステータス</td>
+				<td style="white-space: normal;">担当者<select name="selAssignedId"></select></td>
+				<td>開始日</td>
+				<td>期日</td>
+				<td>実績
+				<br>
+				開始数</td>
+				<td>実績
+				<br>
+				開始日</td>
+				<td>稼働
+				<br>
+				日数</td>
+				<td>中断
+				<br>
+				日数</td>
+				<td>実績
+				<br>
+				日数</td>
+				<td>実績
+				<br>
+				終了日</td>
+				<td>実績
+				<br>
+				終了数</td>
+			</tr>
 		</thead>
 		<tbody>
-			<tr id="rightTr[#]"></tr>
+			<tr id="leftTr[#]">
+				<th><a href="javascript:void(0);" id="upper[#]">↑</a><a href="javascript:void(0);" id="downer[#]">↓</a></th>
+				<th title="[[id]]">[[id]]</th>
+				<td title="[[projectName]]">[[projectName]]</td>
+				<td title="[[version]]">[[version]]</td>
+				<td title="[[subject]]">[[subject]]</td>
+				<td><select name="statusId[#]"></select></td>
+				<td><select name="assignedId[#]"></select></td>
+				<td>
+				<input type="date" name="startDate[#]" value="[[startDate]]" />
+				</td>
+				<td>
+				<input type="date" name="dueDate[#]" value="[[dueDate]]" />
+				</td>
+				<td id="boDays[#]" title="[[boDays]]" class="dec2">[[boDays]]</td>
+				<td id="boDate[#]" title="[[boDate]]">[[boDate]]</td>
+				<td>
+				<input type="text" name="days[#]" value="[[days]]" />
+				</td>
+				<td>
+				<input type="text" name="suspends[#]" value="[[suspends]]" />
+				</td>
+				<td id="manDays[#]" title="[[manDays]]" class="dec2">[[manDays]]</td>
+				<td id="eoDate[#]" title="[[eoDate]]">[[eoDate]]</td>
+				<td id="eoDays[#]" title="[[eoDays]]" class="dec2">[[eoDays]]</td>
+			</tr>
 		</tbody>
 		<tfoot>
-			<tr></tr>
+			<tr>
+				<th>&nbsp;</th>
+				<th>&nbsp;</th>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+			</tr>
 		</tfoot>
 	</table>
+	<div class="rightWrapper">
+		<table class="progress right">
+			<thead>
+				<tr></tr>
+			</thead>
+			<tbody>
+				<tr id="rightTr[#]"></tr>
+			</tbody>
+			<tfoot>
+				<tr></tr>
+			</tfoot>
+		</table>
+	</div>
 </div>

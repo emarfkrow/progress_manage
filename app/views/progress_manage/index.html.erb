@@ -86,11 +86,12 @@
 			
 			//休日データを更新
 			postJson('./progress_manage/setHolidays', holidays, function(json) {
-				redrawDays(holidays);
-				calcActuals(data);
-				bindRows(data);
-				redrawPanels(data);
 			});
+
+			redrawDays(holidays);
+			calcActuals(data);
+			bindRows(data);
+			redrawPanels(data);
 		});
 
 		/**
