@@ -6,6 +6,9 @@ class ProgressManageController < ApplicationController
     def index
     end
 
+    #
+    # 休日リスト
+    #
     def holidays
     
     	jsonText = ""
@@ -22,6 +25,9 @@ class ProgressManageController < ApplicationController
         render json: JSON.parse(jsonText)
     end
 
+    #
+    # ステータスリスト
+    #
     def statuses
     
     	jsonText = ""
@@ -38,6 +44,9 @@ class ProgressManageController < ApplicationController
         render json: JSON.parse(jsonText)
     end
 
+    #
+    # ユーザーリスト
+    #
     def users
     	
         jsonText = ""
@@ -55,13 +64,17 @@ class ProgressManageController < ApplicationController
         render json: JSON.parse(jsonText)
     end
 
+    #
+    # チケット実積リスト
+    #
     def search
     
     	jsonText = ""
         actualSpans = Issue
 			.joins("INNER JOIN issue_statuses ist on ist.id = issues.status_id ")
 			.joins("LEFT JOIN actual_spans as on as.issue_id = issues.id")
-			.select("issues.*, actual_spans.*")
+            .joins(:project)
+			.select("issues.*, actual_spans.*, projects.name as project_name")
 			.where(["ist.is_closed = :closed", {:closed => false}])
 			.all
         actualSpans.each{|actualSpan|
@@ -70,13 +83,72 @@ class ProgressManageController < ApplicationController
             else
                 jsonText += ","
             end
-            jsonText += "\"" + actualSpan.issue_id + "\":{"
-            jsonText += "\"id\":\"" + actualSpan.issue_id + "\","
+            jsonText += "\"#" + actualSpan.issue_id + "\":{"
+            jsonText += "\"id\":\"#" + actualSpan.issue_id + "\","
+            jsonText += "\"projectName\":\"#" + actualSpan.project_name + "\","
+            jsonText += "\"version\":\"#" + actualSpan.version + "\","
+            jsonText += "\"statusId\":\"#" + actualSpan.statusId + "\","
+            jsonText += "\"assignedId\":\"#" + actualSpan.assignedId + "\","
+            jsonText += "\"subject\":\"#" + actualSpan.subject + "\","
+            jsonText += "\"boDays\":\"#" + actualSpan.boDays + "\","
+            jsonText += "\"boDate\":\"#" + actualSpan.boDate + "\","
+            jsonText += "\"days\":\"#" + actualSpan.days + "\","
+            jsonText += "\"suspends\":\"#" + actualSpan.suspends + "\","
+            jsonText += "\"manDays\":\"#" + actualSpan.manDays + "\","
+            jsonText += "\"eoDate\":\"#" + actualSpan.eoDate + "\","
             jsonText += "\"eoDays\":\"" + actualSpan.eoDays + "\""
             jsonText += "}"
 		}
     
         render json: JSON.parse(jsonText)
+    end
+
+    #
+    # 休日リスト洗い替え
+    #
+    def setHolidays
+		ActualHoliday.delete()
+		params.each{|k,v|
+			holiday = k
+			permitted = params.permit(k)
+            ActualHoliday.create(permitted)
+		}
+        render json: params
+    end
+
+    #
+    # チケット更新
+    #
+    def putIssue
+
+        permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date)
+
+        issue = Issue.find(id)
+        if issue == nil
+            issue = Issue.create(permitted)
+        else
+            issue = Issue.update(permitted)
+        end
+
+        render json: issue
+    end
+
+    #
+    # 実績日数更新
+    #
+    def putActualSpan
+
+        #登録内容を取得
+        permitted = params.permit(:id, :bo_days, :bo_date, :days, :suspends, :man_days, :eo_date, :eo_Days)
+
+        actualSpan = ActualSpan.find(id)
+        if actualSpan == nil
+            actualSpan = ActualSpan.create(permitted)
+        else
+            actualSpan = ActualSpan.update(permitted)
+        end
+
+        render json: actualSpan
     end
 
 end
