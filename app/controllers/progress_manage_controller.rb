@@ -138,7 +138,6 @@ class ProgressManageController < ApplicationController
     #
     def putActualSpan
 
-        #登録内容を取得
         permitted = params.permit(:id, :bo_days, :bo_date, :days, :suspends, :man_days, :eo_date, :eo_Days)
 
         actualSpan = ActualSpan.find(id)
