@@ -5,8 +5,8 @@
  font-size: small;
  }*/
 
-a {
-	padding: 0 5 3 5 !important;
+.progress_manage a {
+	padding: 0px 5px 3px 5px !important;
 }
 
 form > div {
@@ -19,7 +19,7 @@ label::after {
 }
 
 /* テーブル */
-table.progress {
+table.progress_manage {
 	border-spacing: 0;
 	border-left: solid 1px #ccc;
 	clear: both;
@@ -27,17 +27,17 @@ table.progress {
 }
 
 /* 明細部 */
-table.progress tbody {
+table.progress_manage tbody {
 	background-color: #eee;
 }
 
 /* 明細部の１行目 */
-table.progress tbody tr:nth-child(1) {
+table.progress_manage tbody tr:nth-child(1) {
 	display: none;
 }
 
 /* セル全般 */
-table.progress th, table.progress td {
+table.progress_manage th, table.progress_manage td {
 	border-bottom: solid 1px #ccc;
 	border-right: solid 1px #ccc;
 	height: 24px;
@@ -45,35 +45,35 @@ table.progress th, table.progress td {
 }
 
 /* タイトル列 */
-table.progress th {
+table.progress_manage th {
 	background-color: #dfd;
 	font-weight: normal;
 }
 
 /* 詳細列 */
-table.progress td {
+table.progress_manage td {
 	background-color: #fff;
 }
 
 /* 詳細列内容 */
-table.progress td * {
+table.progress_manage td * {
 	width: -webkit-fill-available;
 }
 
 /* thead/tfootのセル */
-table.progress thead th, table.progress thead td, table.progress tfoot th, table.progress tfoot td {
+table.progress_manage thead th, table.progress_manage thead td, table.progress_manage tfoot th, table.progress_manage tfoot td {
 	border-top: solid 1px #ccc;
 }
 
 /* ヘッダ部の詳細列 */
-table.progress thead td {
+table.progress_manage thead td {
 	background-color: #dfd;
 	height: 60px;
 	text-align: center;
 }
 
 /* フッタ部の詳細列 */
-table.progress tfoot td {
+table.progress_manage tfoot td {
 	background-color: #dfd;
 	text-align: center;
 }

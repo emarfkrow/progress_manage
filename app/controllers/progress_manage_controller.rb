@@ -10,15 +10,14 @@ class ProgressManageController < ApplicationController
     # 休日リスト
     #
     def holidays
-    	jsonText = ""
+    	jsonText = "{"
         ActualHoliday.all.each{|actualHoliday|
-            if jsonText == ""
-                jsonText += "{"
-            else
+            if jsonText != "{"
                 jsonText += ","
             end
             jsonText += "\"" + actualHoliday.holiday + "\":\"1\""
 		}
+		jsonText += "}"
         render json: JSON.parse(jsonText)
     end
 
@@ -26,15 +25,14 @@ class ProgressManageController < ApplicationController
     # ステータスリスト
     #
     def statuses
-    	jsonText = ""
-        Status.all.each{|status|
-            if jsonText == ""
-                jsonText += "{"
-            else
+    	jsonText = "{"
+        IssueStatus.all.each{|status|
+            if jsonText != "{"
                 jsonText += ","
             end
-            jsonText += "\"" + status.id + "\":\"" + status.name + "\""
+            jsonText += "\"" + status.id.to_s + "\":\"" + status.name + "\""
 		}
+		jsonText += "}"
         render json: JSON.parse(jsonText)
     end
 
@@ -42,11 +40,9 @@ class ProgressManageController < ApplicationController
     # ユーザーリスト
     #
     def users
-        jsonText = ""
+    	jsonText = "{"
         User.all.each{|user|
-            if jsonText == ""
-                jsonText += "{"
-            else
+            if jsonText != "{"
                 jsonText += ","
             end
             jsonText += "\"" + user.id.to_s + "\":\"" + user.lastname + " " + user.firstname + "\""
@@ -59,36 +55,40 @@ class ProgressManageController < ApplicationController
     # チケット実積リスト
     #
     def search
-    	jsonText = ""
+    	jsonText = "{"
         Issue
 			.joins("INNER JOIN issue_statuses ist on ist.id = issues.status_id ")
-			.joins("LEFT JOIN actual_spans as on as.issue_id = issues.id")
+			.joins("LEFT OUTER JOIN actual_spans s on s.issue_id = issues.id")
+			.joins("LEFT OUTER JOIN versions v on v.id = issues.fixed_version_id")
             .joins(:project)
-			.select("issues.*, actual_spans.*, projects.name as project_name")
+			.select("issues.*, s.id as actual_span_id, s.bo_days, s.bo_date, s.days, s.suspends, s.man_days, s.eo_date, s.eo_days, projects.name as project_name, v.name as version")
 			.where(["ist.is_closed = :closed", {:closed => false}])
 			.all
 			.each{|actualSpan|
-            if jsonText == ""
-                jsonText += "{"
-            else
+            if jsonText != "{"
                 jsonText += ","
             end
-            jsonText += "\"#" + actualSpan.issue_id + "\":{"
-            jsonText += "\"id\":\"#" + actualSpan.issue_id + "\","
-            jsonText += "\"projectName\":\"#" + actualSpan.project_name + "\","
-            jsonText += "\"version\":\"#" + actualSpan.version + "\","
-            jsonText += "\"statusId\":\"#" + actualSpan.statusId + "\","
-            jsonText += "\"assignedId\":\"#" + actualSpan.assignedId + "\","
-            jsonText += "\"subject\":\"#" + actualSpan.subject + "\","
-            jsonText += "\"boDays\":\"#" + actualSpan.boDays + "\","
-            jsonText += "\"boDate\":\"#" + actualSpan.boDate + "\","
-            jsonText += "\"days\":\"#" + actualSpan.days + "\","
-            jsonText += "\"suspends\":\"#" + actualSpan.suspends + "\","
-            jsonText += "\"manDays\":\"#" + actualSpan.manDays + "\","
-            jsonText += "\"eoDate\":\"#" + actualSpan.eoDate + "\","
-            jsonText += "\"eoDays\":\"" + actualSpan.eoDays + "\""
+            jsonText += "\"#" + actualSpan.id.to_s + "\":{"
+            jsonText += "\"id\":\"#" + actualSpan.id.to_s + "\","
+            jsonText += "\"projectName\":\"" + actualSpan.project_name + "\","
+            jsonText += "\"version\":\"" + actualSpan.version + "\","
+            jsonText += "\"statusId\":\"" + actualSpan.status_id.to_s + "\","
+            jsonText += "\"assignedId\":\"" + actualSpan.assigned_to_id.to_s + "\","
+            jsonText += "\"startDate\":\"" + actualSpan.start_date.to_s + "\","
+            jsonText += "\"dueDate\":\"" + actualSpan.due_date.to_s + "\","
+            jsonText += "\"subject\":\"" + actualSpan.subject + "\","
+            jsonText += "\"lockVersion\":\"" + actualSpan.lock_version.to_s + "\","
+            jsonText += "\"actualSpanId\":\"" + actualSpan.actual_span_id.to_s + "\","
+            jsonText += "\"boDays\":\"" + actualSpan.bo_days.to_s + "\","
+            jsonText += "\"boDate\":\"" + actualSpan.bo_date.to_s + "\","
+            jsonText += "\"days\":\"" + actualSpan.days.to_s + "\","
+            jsonText += "\"suspends\":\"" + actualSpan.suspends.to_s + "\","
+            jsonText += "\"manDays\":\"" + actualSpan.man_days.to_s + "\","
+            jsonText += "\"eoDate\":\"" + actualSpan.eo_date.to_s + "\","
+            jsonText += "\"eoDays\":\"" + actualSpan.eo_days.to_s + "\""
             jsonText += "}"
 		}
+        jsonText += "}"
         render json: JSON.parse(jsonText)
     end
 
@@ -109,13 +109,9 @@ class ProgressManageController < ApplicationController
     # チケット更新
     #
     def putIssue
-        permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date)
-        issue = Issue.find(id)
-        if issue == nil
-            issue = Issue.create(permitted)
-        else
-            issue = Issue.update(permitted)
-        end
+        permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date, :lock_version)
+        issue = Issue.find(params[:id])
+        issue.update(permitted)
         render json: issue
     end
 
@@ -123,12 +119,12 @@ class ProgressManageController < ApplicationController
     # 実績日数更新
     #
     def putActualSpan
-        permitted = params.permit(:id, :bo_days, :bo_date, :days, :suspends, :man_days, :eo_date, :eo_Days)
-        actualSpan = ActualSpan.find(id)
-        if actualSpan == nil
+        permitted = params.permit(:id, :issue_id, :bo_days, :bo_date, :days, :suspends, :man_days, :eo_date, :eo_days)
+        actualSpan = ActualSpan.where(["issue_id = :issue_id", {:issue_id => params[:issue_id]}]).all
+        if actualSpan.count == 0
             actualSpan = ActualSpan.create(permitted)
         else
-            actualSpan = ActualSpan.update(permitted)
+            actualSpan.update(permitted)
         end
         render json: actualSpan
     end

@@ -87,7 +87,7 @@
 				var holiday = values[i];
 				holidays[holiday] = 1;
 			}
-			
+
 			redrawDays(holidays);
 			calcActuals(data);
 			bindRows(data);
@@ -195,7 +195,7 @@
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
 			//チケット内容を更新
-			postIssue(thisItem)
+			postIssue(thisItem);
 		});
 
 		/**
@@ -210,7 +210,7 @@
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
 			//チケット内容を更新
-			postIssue(thisItem)
+			postIssue(thisItem);
 			//実績のみ再描画
 			calcActuals(data);
 			redrawPanels(data);
@@ -228,7 +228,7 @@
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
 			//チケット内容を更新
-			postIssue(thisItem)
+			postIssue(thisItem);
 			//当該行の予定期間を再描画
 			fillPlan(item);
 		});
@@ -274,19 +274,16 @@
 			}
 		});
 	});
-	
+
 	function postIssue(item) {
-		postJson('./progress_manage/putIssue',
-			{
-				id: item.id,
-				status_id: item.statusId,
-				assigned_to_id: item.assignedId,
-				start_date: item.startDate,
-				due_date: item.dueDate,
-			},
-			function(json){
-			}
-		)
+		postJson('./progress_manage/putIssue', {
+			id : item.id,
+			status_id : item.statusId,
+			assigned_to_id : item.assignedId,
+			start_date : item.startDate,
+			due_date : item.dueDate,
+		}, function(json) {
+		});
 	}
 
 	function getJson(url, callback) {
@@ -296,20 +293,20 @@
 	function postJson(url, dataJson, callback) {
 		ajaxJson(url, 'post', dataJson, callback);
 	}
-	
+
 	function ajaxJson(url, method, dataJson, callback) {
 		$.ajax({
 			url : url,
 			type : method,
 			data : dataJson,
 			dataType : 'jsonp', //dummy対応
-			crossDomain: true, //dummy対応
-			jsonpCallback: url.split('/')[url.split('/').length - 1] //dummy対応
+			crossDomain : true, //dummy対応
+			jsonpCallback : url.split('/')[url.split('/').length - 1] //dummy対応
 		}).fail(function(jqXHR, textStatus, errorThrown) {
 
 			console.log(jqXHR);
-			console.log(textStatus);
-			console.log(errorThrown);
+			console.log('textStatus: ' + textStatus);
+			console.log('errorThrown: ' + errorThrown);
 
 		}).done(function(json, textStatus, jqXHR) {
 
@@ -611,21 +608,18 @@
 				$leftTr.find('[id="manDays[' + id + ']"]').html(item.manDays);
 				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
-				
-				postJson('./progress_manage/putActualSpan',
-					{
-						id: id,
-						bo_days: item.boDays,
-						bo_date: item.boDate,
-						days: item.days,
-						suspends: item.suspends,
-						man_days: item.manDays,
-						eo_date: item.eoDate,
-						eo_days: item.eoDays,
-					},
-					function(json){
-					}
-				)
+
+				postJson('./progress_manage/putActualSpan', {
+					id : id,
+					bo_days : item.boDays,
+					bo_date : item.boDate,
+					days : item.days,
+					suspends : item.suspends,
+					man_days : item.manDays,
+					eo_date : item.eoDate,
+					eo_days : item.eoDays,
+				}, function(json) {
+				});
 			}
 		}
 
@@ -711,7 +705,8 @@
 		</div>
 		<div>
 			<label for="holidays">休日設定</label>
-			<textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;"></textarea>
+			<textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;">
+			</textarea>
 		</div>
 	</form>
 	<table class="progress left">

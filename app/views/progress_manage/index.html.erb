@@ -15,7 +15,7 @@
 	$(function() {
 
 		//リンクをボタン化
-		$('.progress a').button();
+		$('.progress_manage a').button();
 
 		//表示基準日の初期表示
 		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(new Date()));
@@ -278,11 +278,12 @@
 	function postIssue(item) {
 		postJson('./progress_manage/putIssue',
 			{
-				id: item.id,
+				id: item.id.replace(/^#/, ''),
 				status_id: item.statusId,
 				assigned_to_id: item.assignedId,
 				start_date: item.startDate,
 				due_date: item.dueDate,
+				lock_version: item.lockVersion
 			},
 			function(json){
 			}
@@ -612,7 +613,8 @@
 				
 				postJson('./progress_manage/putActualSpan',
 					{
-						id: id,
+						id: item.actualSpanId,
+						issue_id: id.replace(/^#/, ''),
 						bo_days: item.boDays,
 						bo_date: item.boDate,
 						days: item.days,
@@ -701,7 +703,7 @@
 </script>
 
 <h2>進捗管理</h2>
-<div class="progress">
+<div class="progress_manage">
 	<form style="position: absolute; right: 10rem; margin-top: -2.5rem;">
 		<div>
 			<label for="dispBaseYmd">表示基準日</label>
@@ -712,7 +714,7 @@
 			<textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;"></textarea>
 		</div>
 	</form>
-	<table class="progress left">
+	<table class="progress_manage left">
 		<thead>
 			<tr>
 				<th>入替</th>
@@ -797,7 +799,7 @@
 		</tfoot>
 	</table>
 	<div class="rightWrapper">
-		<table class="progress right">
+		<table class="progress_manage right">
 			<thead>
 				<tr></tr>
 			</thead>
