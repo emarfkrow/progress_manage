@@ -10,10 +10,8 @@ class ProgressManageController < ApplicationController
     # 休日リスト
     #
     def holidays
-    
     	jsonText = ""
-        actualHolidays = ActualHoliday.all
-        actualHolidays.each{|actualHoliday|
+        ActualHoliday.all.each{|actualHoliday|
             if jsonText == ""
                 jsonText += "{"
             else
@@ -21,7 +19,6 @@ class ProgressManageController < ApplicationController
             end
             jsonText += "\"" + actualHoliday.holiday + "\":\"1\""
 		}
-    
         render json: JSON.parse(jsonText)
     end
 
@@ -29,10 +26,8 @@ class ProgressManageController < ApplicationController
     # ステータスリスト
     #
     def statuses
-    
     	jsonText = ""
-        statuses = Status.all
-        statuses.each{|status|
+        Status.all.each{|status|
             if jsonText == ""
                 jsonText += "{"
             else
@@ -40,7 +35,6 @@ class ProgressManageController < ApplicationController
             end
             jsonText += "\"" + status.id + "\":\"" + status.name + "\""
 		}
-    
         render json: JSON.parse(jsonText)
     end
 
@@ -48,10 +42,8 @@ class ProgressManageController < ApplicationController
     # ユーザーリスト
     #
     def users
-    	
         jsonText = ""
-        users = User.all
-        users.each{|user|
+        User.all.each{|user|
             if jsonText == ""
                 jsonText += "{"
             else
@@ -60,7 +52,6 @@ class ProgressManageController < ApplicationController
             jsonText += "\"" + user.id.to_s + "\":\"" + user.lastname + " " + user.firstname + "\""
         }
         jsonText += "}"
-
         render json: JSON.parse(jsonText)
     end
 
@@ -68,16 +59,15 @@ class ProgressManageController < ApplicationController
     # チケット実積リスト
     #
     def search
-    
     	jsonText = ""
-        actualSpans = Issue
+        Issue
 			.joins("INNER JOIN issue_statuses ist on ist.id = issues.status_id ")
 			.joins("LEFT JOIN actual_spans as on as.issue_id = issues.id")
             .joins(:project)
 			.select("issues.*, actual_spans.*, projects.name as project_name")
 			.where(["ist.is_closed = :closed", {:closed => false}])
 			.all
-        actualSpans.each{|actualSpan|
+			.each{|actualSpan|
             if jsonText == ""
                 jsonText += "{"
             else
@@ -99,7 +89,6 @@ class ProgressManageController < ApplicationController
             jsonText += "\"eoDays\":\"" + actualSpan.eoDays + "\""
             jsonText += "}"
 		}
-    
         render json: JSON.parse(jsonText)
     end
 
@@ -120,16 +109,13 @@ class ProgressManageController < ApplicationController
     # チケット更新
     #
     def putIssue
-
         permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date)
-
         issue = Issue.find(id)
         if issue == nil
             issue = Issue.create(permitted)
         else
             issue = Issue.update(permitted)
         end
-
         render json: issue
     end
 
@@ -137,16 +123,13 @@ class ProgressManageController < ApplicationController
     # 実績日数更新
     #
     def putActualSpan
-
         permitted = params.permit(:id, :bo_days, :bo_date, :days, :suspends, :man_days, :eo_date, :eo_Days)
-
         actualSpan = ActualSpan.find(id)
         if actualSpan == nil
             actualSpan = ActualSpan.create(permitted)
         else
             actualSpan = ActualSpan.update(permitted)
         end
-
         render json: actualSpan
     end
 
