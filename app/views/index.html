@@ -1,10 +1,11 @@
 <link rel="stylesheet" media="all" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
-<link rel="stylesheet" media="all" href="progress_manage.css" />
+<link rel="stylesheet" media="all" href="../../assets/stylesheets/progress_manage.css" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
-<script src="Dates.js"></script>
-<script src="Numbers.js"></script>
+<script src="Ajaxize.js"></script>
+<script src="../../assets/javascripts/Dates.js"></script>
+<script src="../../assets/javascripts/Numbers.js"></script>
 <script type="text/javascript">
 	//表示月数
 	var months = 3;
@@ -19,13 +20,13 @@
 	$(function() {
 
 		//リンクをボタン化
-		$('.progress a').button();
+		$('.progress_manage a').button();
 
 		//表示基準日の初期表示
 		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(new Date()));
 
 		//休日設定を表示・横軸（日付）の表示
-		getJson('./progress_manage/holidays', function(json) {
+		Ajaxize.getJson('./progress_manage/holidays', function(json) {
 			holidays = json;
 			var holidayList = '';
 			for (var holiday in holidays) {
@@ -36,7 +37,7 @@
 		});
 
 		//ステータスプルダウンを設定
-		getJson('./progress_manage/statuses', function(json) {
+		Ajaxize.getJson('./progress_manage/statuses', function(json) {
 			$('[name^="statusId"]').html('<option></option>');
 			for (var statusId in json) {
 				$('[name^="statusId"]').append('<option value="' + statusId + '">' + json[statusId] + '</option>');
@@ -44,7 +45,7 @@
 		});
 
 		//担当者プルダウンを設定
-		getJson('./progress_manage/users', function(json) {
+		Ajaxize.getJson('./progress_manage/users', function(json) {
 			$('[name^="selAssignedId"]').html('<option></option>');
 			for (var userId in json) {
 				$('[name^="selAssignedId"]').append('<option value="' + userId + '">' + json[userId] + '</option>');
@@ -56,7 +57,7 @@
 		});
 
 		//実績期間を計算・データ表示・実績期間を表示
-		getJson('./progress_manage/search', function(json) {
+		Ajaxize.getJson('./progress_manage/search', function(json) {
 			data = json;
 			calcActuals(data);
 			bindRows(data);
@@ -92,6 +93,10 @@
 			calcActuals(data);
 			bindRows(data);
 			redrawPanels(data);
+			
+			//休日データを更新
+			Ajaxize.postJson('./progress_manage/setHolidays', holidays, function(json) {
+			});
 		});
 
 		/**
@@ -227,10 +232,10 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
+			//当該行の予定期間を再描画
+			fillPlan(thisItem);
 			//チケット内容を更新
 			postIssue(thisItem);
-			//当該行の予定期間を再描画
-			fillPlan(item);
 		});
 
 		/**
@@ -276,44 +281,18 @@
 	});
 
 	function postIssue(item) {
-		postJson('./progress_manage/putIssue', {
-			id : item.id,
-			status_id : item.statusId,
-			assigned_to_id : item.assignedId,
-			start_date : item.startDate,
-			due_date : item.dueDate,
-		}, function(json) {
-		});
-	}
-
-	function getJson(url, callback) {
-		ajaxJson(url, 'get', null, callback);
-	}
-
-	function postJson(url, dataJson, callback) {
-		ajaxJson(url, 'post', dataJson, callback);
-	}
-
-	function ajaxJson(url, method, dataJson, callback) {
-		$.ajax({
-			url : url,
-			type : method,
-			data : dataJson,
-			dataType : 'jsonp', //dummy対応
-			crossDomain : true, //dummy対応
-			jsonpCallback : url.split('/')[url.split('/').length - 1] //dummy対応
-		}).fail(function(jqXHR, textStatus, errorThrown) {
-
-			console.log(jqXHR);
-			console.log('textStatus: ' + textStatus);
-			console.log('errorThrown: ' + errorThrown);
-
-		}).done(function(json, textStatus, jqXHR) {
-
-			callback(json);
-
-		}).always(function(a, b, c) {
-		});
+		Ajaxize.postJson('./progress_manage/putIssue',
+			{
+				id: item.id.replace(/^#/, ''),
+				status_id: item.statusId,
+				assigned_to_id: item.assignedId,
+				start_date: item.startDate,
+				due_date: item.dueDate,
+				lock_version: item.lockVersion
+			},
+			function(json){
+			}
+		);
 	}
 
 	/**
@@ -608,18 +587,22 @@
 				$leftTr.find('[id="manDays[' + id + ']"]').html(item.manDays);
 				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
-
-				postJson('./progress_manage/putActualSpan', {
-					id : id,
-					bo_days : item.boDays,
-					bo_date : item.boDate,
-					days : item.days,
-					suspends : item.suspends,
-					man_days : item.manDays,
-					eo_date : item.eoDate,
-					eo_days : item.eoDays,
-				}, function(json) {
-				});
+				
+				Ajaxize.postJson('./progress_manage/putActualSpan',
+					{
+						id: item.actualSpanId,
+						issue_id: id.replace(/^#/, ''),
+						bo_days: item.boDays,
+						bo_date: item.boDate,
+						days: item.days,
+						suspends: item.suspends,
+						man_days: item.manDays,
+						eo_date: item.eoDate,
+						eo_days: item.eoDays,
+					},
+					function(json){
+					}
+				);
 			}
 		}
 
@@ -697,7 +680,7 @@
 </script>
 
 <h2>進捗管理</h2>
-<div class="progress">
+<div class="progress_manage">
 	<form style="position: absolute; right: 10rem; margin-top: -2.5rem;">
 		<div>
 			<label for="dispBaseYmd">表示基準日</label>
@@ -709,7 +692,7 @@
 			</textarea>
 		</div>
 	</form>
-	<table class="progress left">
+	<table class="progress_manage left">
 		<thead>
 			<tr>
 				<th>入替</th>
@@ -794,7 +777,7 @@
 		</tfoot>
 	</table>
 	<div class="rightWrapper">
-		<table class="progress right">
+		<table class="progress_manage right">
 			<thead>
 				<tr></tr>
 			</thead>

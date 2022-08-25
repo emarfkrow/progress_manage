@@ -105,8 +105,8 @@ table.left th, table.left td {
 
 /* 入替 */
 table.left tr th:nth-child(1) {
-	min-width: 4rem;
-	max-width: 4rem;
+	min-width: 3rem;
+	max-width: 3rem;
 }
 /* id */
 table.left tr th:nth-child(2) {

@@ -1,4 +1,5 @@
 <%= stylesheet_link_tag "progress_manage", :plugin=>'progress_manage' %>
+<%= javascript_include_tag 'Ajaxize', :plugin => 'progress_manage' %>
 <%= javascript_include_tag 'Dates', :plugin => 'progress_manage' %>
 <%= javascript_include_tag 'Numbers', :plugin => 'progress_manage' %>
 <script type="text/javascript">
@@ -21,7 +22,7 @@
 		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(new Date()));
 
 		//休日設定を表示・横軸（日付）の表示
-		getJson('./progress_manage/holidays', function(json) {
+		Ajaxize.getJson('./progress_manage/holidays', function(json) {
 			holidays = json;
 			var holidayList = '';
 			for (var holiday in holidays) {
@@ -32,7 +33,7 @@
 		});
 
 		//ステータスプルダウンを設定
-		getJson('./progress_manage/statuses', function(json) {
+		Ajaxize.getJson('./progress_manage/statuses', function(json) {
 			$('[name^="statusId"]').html('<option></option>');
 			for (var statusId in json) {
 				$('[name^="statusId"]').append('<option value="' + statusId + '">' + json[statusId] + '</option>');
@@ -40,7 +41,7 @@
 		});
 
 		//担当者プルダウンを設定
-		getJson('./progress_manage/users', function(json) {
+		Ajaxize.getJson('./progress_manage/users', function(json) {
 			$('[name^="selAssignedId"]').html('<option></option>');
 			for (var userId in json) {
 				$('[name^="selAssignedId"]').append('<option value="' + userId + '">' + json[userId] + '</option>');
@@ -52,7 +53,7 @@
 		});
 
 		//実績期間を計算・データ表示・実績期間を表示
-		getJson('./progress_manage/search', function(json) {
+		Ajaxize.getJson('./progress_manage/search', function(json) {
 			data = json;
 			calcActuals(data);
 			bindRows(data);
@@ -83,15 +84,15 @@
 				var holiday = values[i];
 				holidays[holiday] = 1;
 			}
-			
-			//休日データを更新
-			postJson('./progress_manage/setHolidays', holidays, function(json) {
-			});
 
 			redrawDays(holidays);
 			calcActuals(data);
 			bindRows(data);
 			redrawPanels(data);
+			
+			//休日データを更新
+			Ajaxize.postJson('./progress_manage/setHolidays', holidays, function(json) {
+			});
 		});
 
 		/**
@@ -195,7 +196,7 @@
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
 			//チケット内容を更新
-			postIssue(thisItem)
+			postIssue(thisItem);
 		});
 
 		/**
@@ -210,7 +211,7 @@
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
 			//チケット内容を更新
-			postIssue(thisItem)
+			postIssue(thisItem);
 			//実績のみ再描画
 			calcActuals(data);
 			redrawPanels(data);
@@ -227,10 +228,10 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
-			//チケット内容を更新
-			postIssue(thisItem)
 			//当該行の予定期間を再描画
-			fillPlan(item);
+			fillPlan(thisItem);
+			//チケット内容を更新
+			postIssue(thisItem);
 		});
 
 		/**
@@ -274,9 +275,9 @@
 			}
 		});
 	});
-	
+
 	function postIssue(item) {
-		postJson('./progress_manage/putIssue',
+		Ajaxize.postJson('./progress_manage/putIssue',
 			{
 				id: item.id.replace(/^#/, ''),
 				status_id: item.statusId,
@@ -287,35 +288,7 @@
 			},
 			function(json){
 			}
-		)
-	}
-
-	function getJson(url, callback) {
-		ajaxJson(url, 'get', null, callback);
-	}
-
-	function postJson(url, dataJson, callback) {
-		ajaxJson(url, 'post', dataJson, callback);
-	}
-	
-	function ajaxJson(url, method, dataJson, callback) {
-		$.ajax({
-			url : url,
-			type : method,
-			data : dataJson,
-			dataType : 'json',
-		}).fail(function(jqXHR, textStatus, errorThrown) {
-
-			console.log(jqXHR);
-			console.log(textStatus);
-			console.log(errorThrown);
-
-		}).done(function(json, textStatus, jqXHR) {
-
-			callback(json);
-
-		}).always(function(a, b, c) {
-		});
+		);
 	}
 
 	/**
@@ -611,7 +584,7 @@
 				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
 				
-				postJson('./progress_manage/putActualSpan',
+				Ajaxize.postJson('./progress_manage/putActualSpan',
 					{
 						id: item.actualSpanId,
 						issue_id: id.replace(/^#/, ''),
@@ -625,7 +598,7 @@
 					},
 					function(json){
 					}
-				)
+				);
 			}
 		}
 
@@ -711,7 +684,8 @@
 		</div>
 		<div>
 			<label for="holidays">休日設定</label>
-			<textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;"></textarea>
+			<textarea id="holidays" name="holidays" style="position: absolute; z-index: 2;">
+			</textarea>
 		</div>
 	</form>
 	<table class="progress_manage left">
