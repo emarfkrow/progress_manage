@@ -14,7 +14,7 @@
 	$(function() {
 
 		//リンクをボタン化
-		$('.progress_manage a').button();
+		$('.progress_manage a.button').button();
 
 		//表示基準日の初期表示
 		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(new Date()));
@@ -448,6 +448,7 @@
 		$rightTbody.append(rightTrs);
 		
 		$('table.left>tbody').sortable({
+			handle: 'th',
 			stop: function(event, ui) {
 				
 				var $prevTr = ui.item.prev('tr');
@@ -845,11 +846,11 @@
 		</thead>
 		<tbody>
 			<tr id="leftTr[#]">
-				<th><a href="javascript:void(0);" id="upper[#]">↑</a><a href="javascript:void(0);" id="downer[#]">↓</a></th>
+				<th><a href="javascript:void(0);" id="upper[#]" class="button">↑</a><a href="javascript:void(0);" id="downer[#]" class="button">↓</a></th>
 				<th title="[[id]]">[[id]]</th>
 				<td title="[[projectName]]">[[projectName]]</td>
 				<td title="[[version]]">[[version]]</td>
-				<td title="[[subject]]">[[subject]]</td>
+				<td title="[[subject]]"><a href="./issues/#">[[subject]]</a></td>
 				<td><select name="statusId[#]"></select></td>
 				<td><select name="assignedId[#]"></select></td>
 				<td>
