@@ -410,6 +410,9 @@
 		 */
 
 		var assignedId = $('[name="selAssignedId"]').val();
+		
+		//セル落ち防止で余分にセル化しておく高さ
+		var scrollBuffer = 1000;
 
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
 		var trsHeight = 0;
@@ -427,11 +430,11 @@
 
 			var leftTr = '';
 			var rightTr = '';
-			if ((trsHeight < leftScrollTop) || (tbodyScrollHeight + leftScrollTop + trHeight < trsHeight)) {
+			if ((trsHeight < leftScrollTop - scrollBuffer) || (tbodyScrollHeight + leftScrollTop + trHeight + scrollBuffer < trsHeight)) {
 
 				//上側の非表示行か下側の非表示行なら空行を設定
-				leftTr = '<tr id="leftTr[' + id + ']"><td></td></tr>';
-				rightTr = '<tr id="rightTr[' + id + ']"><td></td></tr>';
+				leftTr = '<tr><td></td></tr>';
+				rightTr = '<tr><td></td></tr>';
 
 			} else {
 
@@ -453,6 +456,51 @@
 		//左側表と右側表に全件反映
 		$leftTbody.append(leftTrs);
 		$rightTbody.append(rightTrs);
+		
+		$('table.left>tbody').sortable({
+			stop: function(event, ui) {
+				
+				var $prevTr = ui.item.prev('tr');
+				var $thisTr = ui.item;
+				var $nextTr = ui.item.next('tr');
+
+				console.log($prevTr);
+				console.log(ui.item);
+				console.log(ui.item.next('tr'));
+
+				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
+				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
+				var nextId = $nextTr[0].id.split(/\[|\]/g)[1];
+				
+				//対象データ取得
+				var thisItem = data[thisId];
+
+				var newData = {};
+				var preItem = null;
+				for (var id in data) {
+					if (id != thisId) {
+						if (id == prevId) {
+							newData[id] = data[id];
+							newData[thisId] = thisItem;
+						} else if (id == nextId) {
+							newData[thisId] = thisItem;
+							newData[id] = data[id];
+						} else {
+							newData[id] = data[id];
+						}
+					}
+				}
+				data = newData;
+				
+				//クロージャ内からグローバルのdataに作用できないため
+				setData(newData)
+
+				//当該担当者のみ再描画
+				calcActual(data, thisItem.assignedId);
+				bindRows(data);
+				redrawPanels(data);
+			},
+		});
 
 		//左表明細高さ
 		var leftTbodyHeight = $leftTbody.height();
@@ -491,6 +539,10 @@
 		for (var id in data) {
 			fillPlan(data[id]);
 		}
+	}
+	
+	function setData(newData) {
+		data = newData;
 	}
 
 	/**
