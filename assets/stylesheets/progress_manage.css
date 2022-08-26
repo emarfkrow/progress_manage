@@ -1,10 +1,5 @@
 @charset "UTF-8";
 
-/* 全体のフォントサイズ */
-/** {
- font-size: small;
- }*/
-
 .progress_manage a {
 	padding: 0px 5px 3px 5px !important;
 }
@@ -105,8 +100,8 @@ table.left th, table.left td {
 
 /* 入替 */
 table.left tr th:nth-child(1) {
-	min-width: 3rem;
-	max-width: 3rem;
+	min-width: 4rem;
+	max-width: 4rem;
 }
 /* id */
 table.left tr th:nth-child(2) {
