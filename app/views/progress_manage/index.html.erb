@@ -353,9 +353,9 @@
 		var dueDate = Dates.parseYyyyHmmHdd(item.dueDate);
 		for (var date = startDate; date <= dueDate; date.setDate(date.getDate() + 1)) {
 			var cell = $('table.right tbody [id="' + Dates.formatYySmmSdd(date) + '[' + item.id + ']"]');
-			if (!cell.hasClass('holiday')) {
+			//if (!cell.hasClass('holiday')) {
 				cell.addClass('plan');
-			}
+			//}
 		}
 	}
 
@@ -414,7 +414,7 @@
 
 			var leftTr = '';
 			var rightTr = '';
-			if ((trsHeight < leftScrollTop) || (tbodyScrollHeight <= trsHeight - trHeight - leftScrollTop)) {
+			if ((trsHeight < leftScrollTop) || (tbodyScrollHeight + leftScrollTop + trHeight < trsHeight)) {
 
 				//上側の非表示行か下側の非表示行なら空行を設定
 				leftTr = '<tr><td></td></tr>';
@@ -441,6 +441,7 @@
 		$leftTbody.append(leftTrs);
 		$rightTbody.append(rightTrs);
 
+		//左表明細高さ
 		var leftTbodyHeight = $leftTbody.height();
 
 		//反映後に、左側表の高さ調整と元の位置までスクロール
@@ -671,6 +672,66 @@
 
 		//全ての実績パネルを一度に追加
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
+
+		var gridSize = ($('table.right>tbody>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
+		
+		$('.panel').resizable({
+			handles: "e",
+			//リサイズ時のグリッドサイズ
+			grid : gridSize,
+			/**
+			 * リサイズ終了時のイベント
+			 */
+			stop : function(event, ui) {
+
+				//パネルの個数
+				var panelWidth = ui.size.width;
+				var panelGrids = Math.round(panelWidth / gridSize, 0);
+				
+				//チケットID
+				var panelId = ui.element.attr('id');
+				var issueId = panelId.replace(/^panel\_/, '');
+				
+				//実績開始日
+				var boDateValue = $('[id="boDate[' + issueId + ']"]').html();
+				var boDate = Dates.parseYySmmSdd(boDateValue);
+				var boY = boDate.getFullYear();
+				var boM = boDate.getMonth();
+				var boD = boDate.getDate();
+				
+				//実績終了日
+				var eoDate = new Date(boY, boM, boD);
+				eoDate.setDate(eoDate.getDate() + panelGrids);
+				eoDate.setSeconds(-1);
+
+				var days = 0;
+				var date = new Date(boY, boM, boD);
+				while (true) {
+					if (eoDate <= date) {
+						break;
+					}
+					var day = date.getDay();
+					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(date)]) {
+						++days;
+					}
+					date.setDate(date.getDate() + 1);
+				}
+				
+				var item = data[issueId];
+				var manDays = days;
+				if (item.suspends) {
+					days -= item.suspends;
+					manDays += item.suspends;
+				}
+				item.days = days;
+				item.manDays = manDays;
+				
+				$('[name="days[' + issueId + ']"]').val(days);
+				
+				calcActual(data, item.assignedId);
+				redrawPanels(data);
+			}
+		});
 	}
 
 </script>
