@@ -3,8 +3,6 @@
 <%= javascript_include_tag 'Dates', :plugin => 'progress_manage' %>
 <%= javascript_include_tag 'Numbers', :plugin => 'progress_manage' %>
 <script type="text/javascript">
-	//表示月数
-	var months = 3;
 
 	var holidays = {};
 
@@ -67,7 +65,7 @@
 		/**
 		 * 表示基準日変更イベント
 		 */
-		$('[name="dispBaseYmd"]').on('change', function() {
+		$('[name="dispMonths"], [name="dispBaseYmd"]').on('change', function() {
 			redrawDays(holidays);
 			bindRows(data);
 			redrawPanels(data);
@@ -307,6 +305,8 @@
 		var baseM = dispBaseYmd.getMonth();
 		var baseD = dispBaseYmd.getDate();
 		var baseYm = baseY * 100 + baseM;
+		
+		var months = $('[name="dispMonths"]').val();
 
 		var theadTds = '';
 		var tbodyTds = '';
@@ -318,7 +318,10 @@
 
 			//指定月数で終了
 			var ym = date.getFullYear() * 100 + date.getMonth();
-			if (ym - baseYm >= months && baseD < date.getDate()) {
+			
+			var monthDiff = (date.getFullYear() * 12 + date.getMonth()) - (baseY * 12 + baseM);
+			
+			if (monthDiff >= months && baseD < date.getDate()) {
 				break;
 			}
 
@@ -417,8 +420,8 @@
 			if ((trsHeight < leftScrollTop) || (tbodyScrollHeight + leftScrollTop + trHeight < trsHeight)) {
 
 				//上側の非表示行か下側の非表示行なら空行を設定
-				leftTr = '<tr><td></td></tr>';
-				rightTr = '<tr><td></td></tr>';
+				leftTr = '<tr id="leftTr[' + id + ']"><td></td></tr>';
+				rightTr = '<tr id="rightTr[' + id + ']"><td></td></tr>';
 
 			} else {
 
@@ -739,6 +742,10 @@
 <h2>進捗管理</h2>
 <div class="progress_manage">
 	<form style="position: absolute; right: 6rem; margin-top: -2.5rem;">
+		<div>
+			<label for="dispMonths">表示月数</label>
+			<input type="number" id="dispMonths" name="dispMonths" value="3" style="width: 5rem;" />
+		</div>
 		<div>
 			<label for="dispBaseYmd">表示基準日</label>
 			<input type="date" id="dispBaseYmd" name="dispBaseYmd" />
