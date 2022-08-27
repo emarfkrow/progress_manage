@@ -1,10 +1,10 @@
 <link rel="stylesheet" media="all" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
 <link rel="stylesheet" media="all" href="../../assets/stylesheets/progress_manage.css" />
 <style>
-/* 全体のフォントサイズ */
-* {
-    font-size: small;
-}
+	/* 全体のフォントサイズ */
+	* {
+		font-size: small;
+	}
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
@@ -13,7 +13,6 @@
 <script src="../../assets/javascripts/Dates.js"></script>
 <script src="../../assets/javascripts/Numbers.js"></script>
 <script type="text/javascript">
-
 	var holidays = {};
 
 	var data = {};
@@ -97,7 +96,7 @@
 			calcActuals(data);
 			bindRows(data);
 			redrawPanels(data);
-			
+
 			//休日データを更新
 			Ajaxize.postJson('./progress_manage/setHolidays', holidays, function(json) {
 			});
@@ -285,18 +284,15 @@
 	});
 
 	function postIssue(item) {
-		Ajaxize.postJson('./progress_manage/putIssue',
-			{
-				id: item.id.replace(/^#/, ''),
-				status_id: item.statusId,
-				assigned_to_id: item.assignedId,
-				start_date: item.startDate,
-				due_date: item.dueDate,
-				lock_version: item.lockVersion
-			},
-			function(json){
-			}
-		);
+		Ajaxize.postJson('./progress_manage/putIssue', {
+			id : item.id.replace(/^#/, ''),
+			status_id : item.statusId,
+			assigned_to_id : item.assignedId,
+			start_date : item.startDate,
+			due_date : item.dueDate,
+			lock_version : item.lockVersion
+		}, function(json) {
+		});
 	}
 
 	/**
@@ -315,7 +311,7 @@
 		var baseM = dispBaseYmd.getMonth();
 		var baseD = dispBaseYmd.getDate();
 		var baseYm = baseY * 100 + baseM;
-		
+
 		var months = $('[name="dispMonths"]').val();
 
 		var theadTds = '';
@@ -328,9 +324,9 @@
 
 			//指定月数で終了
 			var ym = date.getFullYear() * 100 + date.getMonth();
-			
+
 			var monthDiff = (date.getFullYear() * 12 + date.getMonth()) - (baseY * 12 + baseM);
-			
+
 			if (monthDiff >= months && baseD < date.getDate()) {
 				break;
 			}
@@ -367,7 +363,7 @@
 		for (var date = startDate; date <= dueDate; date.setDate(date.getDate() + 1)) {
 			var cell = $('table.right tbody [id="' + Dates.formatYySmmSdd(date) + '[' + item.id + ']"]');
 			//if (!cell.hasClass('holiday')) {
-				cell.addClass('plan');
+			cell.addClass('plan');
 			//}
 		}
 	}
@@ -379,7 +375,9 @@
 		var offsetTop = $('table.left')[0].offsetTop;
 		var theadHeight = $('table.left thead')[0].offsetHeight;
 		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
-		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - 25;
+		var footerHeight = $('div[id="footer"]')[0].offsetHeight;
+		var scrollbarHeight = 26;
+		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - footerHeight - scrollbarHeight;
 
 		//明細部のスクロール量
 		var leftScrollTop = $('table.left tbody').scrollTop();
@@ -410,7 +408,7 @@
 		 */
 
 		var assignedId = $('[name="selAssignedId"]').val();
-		
+
 		//セル落ち防止で余分にセル化しておく高さ
 		var scrollBuffer = 1000;
 
@@ -439,9 +437,14 @@
 			} else {
 
 				//左側表文字列に追加
-				var leftTr = leftTbodyHtml.replaceAll('#', item.id);
+				var leftTr = leftTbodyHtml.replaceAll('_#', item.id.replace(/#/, ''));
+				var leftTr = leftTr.replaceAll('#', item.id);
 				for (var k in item) {
-					leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
+					if (k == "boDate" || k == "eoDate") {
+						leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item[k])));
+					} else {
+						leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
+					}
 				}
 				leftTr = leftTr.replaceAll(/\[\[.+?\]\]/g, '');
 
@@ -456,11 +459,11 @@
 		//左側表と右側表に全件反映
 		$leftTbody.append(leftTrs);
 		$rightTbody.append(rightTrs);
-		
+
 		$('table.left>tbody').sortable({
-			handle: 'th',
-			stop: function(event, ui) {
-				
+			handle : 'th',
+			stop : function(event, ui) {
+
 				var $prevTr = ui.item.prev('tr');
 				var $thisTr = ui.item;
 				var $nextTr = ui.item.next('tr');
@@ -472,7 +475,7 @@
 				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
 				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
 				var nextId = $nextTr[0].id.split(/\[|\]/g)[1];
-				
+
 				//対象データ取得
 				var thisItem = data[thisId];
 
@@ -492,7 +495,7 @@
 					}
 				}
 				data = newData;
-				
+
 				//クロージャ内からグローバルのdataに作用できないため
 				setData(newData)
 
@@ -511,7 +514,7 @@
 		$leftTbody.scrollTop(leftScrollTop);
 
 		//反映後に、右側表の高さ調整と元の位置までスクロール
-		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+		$('div.rightWrapper').css('height', offsetHeight - offsetTop - footerHeight - 10);
 		$rightTbody.css('height', tbodyScrollHeight);
 		//行数が表示高さに満たない場合は、フッタまでスペースを確保する
 		if (leftTbodyHeight < tbodyScrollHeight) {
@@ -541,7 +544,7 @@
 			fillPlan(data[id]);
 		}
 	}
-	
+
 	function setData(newData) {
 		data = newData;
 	}
@@ -585,7 +588,7 @@
 				//実績基準日を、１件目の実績開始日か、システム日に設定
 				if (baseBoDate == null) {
 					if (item.boDate && item.manDays && item.statusId != '1') {
-						baseBoDate = Dates.parseYySmmSdd(item.boDate);
+						baseBoDate = Dates.parseYyyyHmmHdd(item.boDate);
 					} else {
 						baseBoDate = new Date();
 					}
@@ -593,19 +596,19 @@
 
 				//実績開始日
 				var boDate = new Date(baseBoDate.getFullYear(), baseBoDate.getMonth(), baseBoDate.getDate());
-				if (item.boDays > 0) {
-					var workDays = 0;
-					while (true) {
-						boDate.setDate(boDate.getDate() + 1);
-						var boDay = boDate.getDay();
-						if (0 < boDay && boDay < 6 && !holidays[Dates.formatYyyyHmmHdd(boDate)]) {++workDays;
-						}
-						if (Math.floor(item.boDays) <= workDays) {
-							break;
-						}
+				//if (item.boDays > 0) {
+				var workDays = 0;
+				while (true) {
+					var boDay = boDate.getDay();
+					if (0 < boDay && boDay < 6 && !holidays[Dates.formatYyyyHmmHdd(boDate)]) {++workDays;
 					}
+					if (Math.floor(item.boDays) < workDays) {
+						break;
+					}
+					boDate.setDate(boDate.getDate() + 1);
 				}
-				item.boDate = Dates.formatYySmmSdd(boDate);
+				//}
+				item.boDate = Dates.formatYyyyHmmHdd(boDate);
 
 				//稼働日数
 				var days = 0;
@@ -637,7 +640,7 @@
 						}
 					}
 				}
-				item.eoDate = Dates.formatYySmmSdd(eoDate);
+				item.eoDate = Dates.formatYyyyHmmHdd(eoDate);
 
 				//実績終了数
 				eoDays += item.manDays;
@@ -646,26 +649,26 @@
 				//当該行の再計算結果を表示
 				var $leftTr = $('table.left tbody tr[id="leftTr[' + id + ']"]');
 				$leftTr.find('[id="boDays[' + id + ']"]').html(item.boDays);
-				$leftTr.find('[id="boDate[' + id + ']"]').html(item.boDate);
+				$leftTr.find('[id="boDate[' + id + ']"]').html(Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.boDate)));
 				$leftTr.find('[id="manDays[' + id + ']"]').html(item.manDays);
-				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
+				$leftTr.find('[id="eoDate[' + id + ']"]').html(Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.eoDate)));
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
-				
-				Ajaxize.postJson('./progress_manage/putActualSpan',
-					{
-						id: item.actualSpanId,
-						issue_id: id.replace(/^#/, ''),
-						bo_days: item.boDays,
-						bo_date: item.boDate,
-						days: item.days,
-						suspends: item.suspends,
-						man_days: item.manDays,
-						eo_date: item.eoDate,
-						eo_days: item.eoDays,
-					},
-					function(json){
-					}
-				);
+
+				boYmd = Dates.formatYyyyHmmHdd(boDate);
+				eoYmd = Dates.formatYyyyHmmHdd(eoDate);
+
+				Ajaxize.postJson('./progress_manage/putActualSpan', {
+					id : item.actualSpanId,
+					issue_id : id.replace(/^#/, ''),
+					bo_days : item.boDays,
+					bo_date : boYmd,
+					days : item.days,
+					suspends : item.suspends,
+					man_days : item.manDays,
+					eo_date : eoYmd,
+					eo_days : item.eoDays,
+				}, function(json) {
+				});
 			}
 		}
 
@@ -705,18 +708,18 @@
 			}
 
 			//実績終了日が表示基準日より過去ならスキップ
-			if (Dates.parseYySmmSdd(item.eoDate) < dispBaseYmd) {
+			if (Dates.parseYyyyHmmHdd(item.eoDate) < dispBaseYmd) {
 				continue;
 			}
 
 			//実績開始日が表示基準日より過去なら表示基準日から描画
 			var boDate = item.boDate;
-			if (Dates.parseYySmmSdd(boDate) < dispBaseYmd) {
+			if (Dates.parseYyyyHmmHdd(boDate) < dispBaseYmd) {
 				boDate = Dates.formatYySmmSdd(dispBaseYmd);
 			}
 
 			//表示されていない行ならスキップ
-			var $boDateCell = $rightTbody.find('[id="' + boDate + '[' + id + ']"]');
+			var $boDateCell = $rightTbody.find('[id="' + Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(boDate)) + '[' + id + ']"]');
 			if ($boDateCell.length == 0) {
 				continue;
 			}
@@ -726,7 +729,7 @@
 			var t = $boDateCell[0].offsetTop - theadHeight;
 
 			//実績終了日セルから、パネルの高さ・幅を取得
-			var $eoDateCell = $rightTbody.find('[id="' + item.eoDate + '[' + id + ']"]');
+			var $eoDateCell = $rightTbody.find('[id="' + Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.eoDate)) + '[' + id + ']"]');
 			var h = $eoDateCell[0].offsetHeight - 1;
 			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - l - 2;
 
@@ -740,9 +743,9 @@
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 
 		var gridSize = ($('table.right>tbody>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
-		
+
 		$('.panel').resizable({
-			handles: "e",
+			handles : "e",
 			//リサイズ時のグリッドサイズ
 			grid : gridSize,
 			/**
@@ -753,18 +756,18 @@
 				//パネルの個数
 				var panelWidth = ui.size.width;
 				var panelGrids = Math.round(panelWidth / gridSize, 0);
-				
+
 				//チケットID
 				var panelId = ui.element.attr('id');
 				var issueId = panelId.replace(/^panel\_/, '');
-				
+
 				//実績開始日
 				var boDateValue = $('[id="boDate[' + issueId + ']"]').html();
 				var boDate = Dates.parseYySmmSdd(boDateValue);
 				var boY = boDate.getFullYear();
 				var boM = boDate.getMonth();
 				var boD = boDate.getDate();
-				
+
 				//実績終了日
 				var eoDate = new Date(boY, boM, boD);
 				eoDate.setDate(eoDate.getDate() + panelGrids);
@@ -777,12 +780,11 @@
 						break;
 					}
 					var day = date.getDay();
-					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(date)]) {
-						++days;
+					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(date)]) {++days;
 					}
 					date.setDate(date.getDate() + 1);
 				}
-				
+
 				var item = data[issueId];
 				var manDays = days;
 				if (item.suspends) {
@@ -791,9 +793,9 @@
 				}
 				item.days = days;
 				item.manDays = manDays;
-				
+
 				$('[name="days[' + issueId + ']"]').val(days);
-				
+
 				calcActual(data, item.assignedId);
 				redrawPanels(data);
 			}
@@ -860,7 +862,7 @@
 				<th title="[[id]]">[[id]]</th>
 				<td title="[[projectName]]">[[projectName]]</td>
 				<td title="[[version]]">[[version]]</td>
-				<td title="[[subject]]"><a href="./issues/#">[[subject]]</a></td>
+				<td title="[[subject]]"><a href="./issues/_#">[[subject]]</a></td>
 				<td><select name="statusId[#]"></select></td>
 				<td><select name="assignedId[#]"></select></td>
 				<td>

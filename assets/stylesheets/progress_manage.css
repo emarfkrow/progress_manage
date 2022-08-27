@@ -43,11 +43,13 @@ table.progress_manage th, table.progress_manage td {
 table.progress_manage th {
 	background-color: #dfd;
 	font-weight: normal;
+	padding: 0px;
 }
 
 /* 詳細列 */
 table.progress_manage td {
 	background-color: #fff;
+	padding: 0px;
 }
 
 /* 詳細列内容 */
@@ -110,8 +112,8 @@ table.left tr th:nth-child(2) {
 }
 /* プロジェクト */
 table.left tr td:nth-child(3) {
-	min-width: 6.5rem;
-	max-width: 6.5rem;
+	min-width: 6rem;
+	max-width: 6rem;
 }
 /* バージョン */
 table.left tr td:nth-child(4) {
@@ -211,7 +213,7 @@ table.right thead td {
 	writing-mode: vertical-rl;
 	text-orientation: sideways-right;
 	font-size: xx-small;
-	height: 58px;
+	/*height: 58px;*/
 	z-index: 1;
 	min-width: 19px;
 	max-width: 19px;

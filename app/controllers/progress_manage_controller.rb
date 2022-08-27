@@ -10,14 +10,14 @@ class ProgressManageController < ApplicationController
     # 休日リスト
     #
     def holidays
-    	jsonText = "{"
+        jsonText = "{"
         ActualHoliday.all.each{|actualHoliday|
             if jsonText != "{"
                 jsonText += ","
             end
-            jsonText += "\"" + actualHoliday.holiday + "\":\"1\""
-		}
-		jsonText += "}"
+            jsonText += "\"" + actualHoliday.holiday.to_s + "\":\"1\""
+        }
+        jsonText += "}"
         render json: JSON.parse(jsonText)
     end
 
@@ -25,14 +25,14 @@ class ProgressManageController < ApplicationController
     # ステータスリスト
     #
     def statuses
-    	jsonText = "{"
+        jsonText = "{"
         IssueStatus.all.each{|status|
             if jsonText != "{"
                 jsonText += ","
             end
             jsonText += "\"" + status.id.to_s + "\":\"" + status.name + "\""
-		}
-		jsonText += "}"
+        }
+        jsonText += "}"
         render json: JSON.parse(jsonText)
     end
 
@@ -40,7 +40,7 @@ class ProgressManageController < ApplicationController
     # ユーザーリスト
     #
     def users
-    	jsonText = "{"
+        jsonText = "{"
         User.all.each{|user|
             if jsonText != "{"
                 jsonText += ","
@@ -55,16 +55,17 @@ class ProgressManageController < ApplicationController
     # チケット実積リスト
     #
     def search
-    	jsonText = "{"
+        jsonText = "{"
         Issue
-			.joins("INNER JOIN issue_statuses ist on ist.id = issues.status_id ")
-			.joins("LEFT OUTER JOIN actual_spans s on s.issue_id = issues.id")
-			.joins("LEFT OUTER JOIN versions v on v.id = issues.fixed_version_id")
-            .joins(:project)
-			.select("issues.*, s.id as actual_span_id, s.bo_days, s.bo_date, s.days, s.suspends, s.man_days, s.eo_date, s.eo_days, projects.name as project_name, v.name as version")
-			.where(["ist.is_closed = :closed", {:closed => false}])
-			.all
-			.each{|actualSpan|
+        .joins("INNER JOIN issue_statuses ist on ist.id = issues.status_id ")
+        .joins("LEFT OUTER JOIN actual_spans s on s.issue_id = issues.id")
+        .joins("LEFT OUTER JOIN versions v on v.id = issues.fixed_version_id")
+        .joins(:project)
+        .select("issues.*, s.id as actual_span_id, s.bo_days, s.bo_date, s.days, s.suspends, s.man_days, s.eo_date, s.eo_days, projects.name as project_name, v.name as version")
+        .where(["ist.is_closed = :closed", {:closed => false}])
+        .all
+        .order(:bo_date).order(:id)
+        .each{|actualSpan|
             if jsonText != "{"
                 jsonText += ","
             end
@@ -87,7 +88,7 @@ class ProgressManageController < ApplicationController
             jsonText += "\"eoDate\":\"" + actualSpan.eo_date.to_s + "\","
             jsonText += "\"eoDays\":\"" + actualSpan.eo_days.to_s + "\""
             jsonText += "}"
-		}
+        }
         jsonText += "}"
         render json: JSON.parse(jsonText)
     end
@@ -96,12 +97,15 @@ class ProgressManageController < ApplicationController
     # 休日リスト洗い替え
     #
     def setHolidays
-		ActualHoliday.delete()
-		params.each{|k,v|
-			holiday = k
-			permitted = params.permit(k)
-            ActualHoliday.create(permitted)
-		}
+        ActualHoliday.delete_all()
+        params.each{|k,v|
+            next if k == "controller"
+            next if k == "action"
+            # permitted = params.permit(k)
+            # ActualHoliday.create(permitted)
+            sql = "INSERT INTO actual_holidays (holiday) VALUES ('" + k + "')"
+            ActiveRecord::Base.connection.execute(sql)
+        }
         render json: params
     end
 
@@ -109,9 +113,20 @@ class ProgressManageController < ApplicationController
     # チケット更新
     #
     def putIssue
-        permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date, :lock_version)
+        # permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date, :lock_version)
+        # issue = Issue.find(params[:id])
+        # issue.update(permitted)
+
+        sql = "UPDATE issues "
+        sql += "SET "
+        sql += "    status_id = " + params[:status_id]
+        sql += "    , assigned_to_id = " + params[:assigned_to_id]
+        sql += "    , start_date = '" + params[:start_date] + "'"
+        sql += "    , due_date = '" + params[:due_date] + "'"
+        sql += " WHERE "
+        sql += "    id = " + params[:id]
+        ActiveRecord::Base.connection.execute(sql)
         issue = Issue.find(params[:id])
-        issue.update(permitted)
         render json: issue
     end
 
@@ -124,7 +139,7 @@ class ProgressManageController < ApplicationController
         if actualSpan.count == 0
             actualSpan = ActualSpan.create(permitted)
         else
-            actualSpan.update(permitted)
+        actualSpan.update(permitted)
         end
         render json: actualSpan
     end
