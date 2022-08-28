@@ -17,6 +17,22 @@
 
 	var data = {};
 
+	function addScrollstopEvent(selector) {
+		var newEvent = new $.Event('scrollstop');
+		var timer;
+		function newEventTrigger() {
+			if (timer) {
+				clearTimeout(timer);
+			}
+			timer = setTimeout(function() {
+				$(selector).trigger(newEvent);
+			}, 200);
+		}
+
+
+		$(selector).on('scroll', newEventTrigger);
+	}
+
 	/**
 	 * 初期化処理
 	 */
@@ -113,10 +129,60 @@
 		/**
 		 * スクロール連携
 		 */
-		$('div.rightWrapper').on('scroll', function() {
+		addScrollstopEvent('div.rightWrapper');
+		$('div.rightWrapper').on('scrollstop', function() {
 			$('table.left tbody').scrollTop(this.scrollTop);
 			bindRows(data);
 			redrawPanels(data);
+		});
+
+		/*
+		 * 行ドラッグイベント
+		 */
+		$('table.left>tbody').sortable({
+			handle : 'th',
+			stop : function(event, ui) {
+
+				var $prevTr = ui.item.prev('tr');
+				var $thisTr = ui.item;
+				var $nextTr = ui.item.next('tr');
+
+				console.log($prevTr);
+				console.log(ui.item);
+				console.log(ui.item.next('tr'));
+
+				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
+				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
+				var nextId = $nextTr[0].id.split(/\[|\]/g)[1];
+
+				//対象データ取得
+				var thisItem = data[thisId];
+
+				var newData = {};
+				var preItem = null;
+				for (var id in data) {
+					if (id != thisId) {
+						if (id == prevId) {
+							newData[id] = data[id];
+							newData[thisId] = thisItem;
+						} else if (id == nextId) {
+							newData[thisId] = thisItem;
+							newData[id] = data[id];
+						} else {
+							newData[id] = data[id];
+						}
+					}
+				}
+				data = newData;
+
+				//クロージャ内からグローバルのdataに作用できないため
+				setData(newData);
+
+				//当該担当者のみ再描画
+				calcActual(data, thisItem.assignedId);
+				bindRows(data);
+				redrawPanels(data);
+			},
 		});
 
 		/**
@@ -375,7 +441,10 @@
 		var offsetTop = $('table.left')[0].offsetTop;
 		var theadHeight = $('table.left thead')[0].offsetHeight;
 		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
-		var footerHeight = $('div[id="footer"]')[0].offsetHeight;
+		var footerHeight = 0;
+		if ($('div[id="footer"]').length > 0) {
+			footerHeight = $('div[id="footer"]')[0].offsetHeight;
+		}
 		var scrollbarHeight = 26;
 		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - footerHeight - scrollbarHeight;
 
@@ -411,6 +480,7 @@
 
 		//セル落ち防止で余分にセル化しておく高さ
 		var scrollBuffer = 1000;
+		scrollBuffer = 100;
 
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
 		var trsHeight = 0;
@@ -431,8 +501,8 @@
 			if ((trsHeight < leftScrollTop - scrollBuffer) || (tbodyScrollHeight + leftScrollTop + trHeight + scrollBuffer < trsHeight)) {
 
 				//上側の非表示行か下側の非表示行なら空行を設定
-				leftTr = '<tr><td></td></tr>';
-				rightTr = '<tr><td></td></tr>';
+				leftTr = '<tr></tr>';
+				rightTr = '<tr></tr>';
 
 			} else {
 
@@ -452,59 +522,22 @@
 				var rightTr = rightTbodyHtml.replaceAll('#', item.id);
 			}
 
-			leftTrs += leftTr;
-			rightTrs += rightTr;
+			$leftTbody.append(leftTr);
+			$rightTbody.append(rightTr);
+
+			//ステータス・担当者の選択
+			$('[name="statusId[' + id + ']"]').val([item.statusId]);
+			$('[name="assignedId[' + id + ']"]').val([item.assignedId]);
+			//予定期間の背景色設定
+			fillPlan(data[id]);
+
+			// leftTrs += leftTr;
+			// rightTrs += rightTr;
 		}
 
 		//左側表と右側表に全件反映
-		$leftTbody.append(leftTrs);
-		$rightTbody.append(rightTrs);
-
-		$('table.left>tbody').sortable({
-			handle : 'th',
-			stop : function(event, ui) {
-
-				var $prevTr = ui.item.prev('tr');
-				var $thisTr = ui.item;
-				var $nextTr = ui.item.next('tr');
-
-				console.log($prevTr);
-				console.log(ui.item);
-				console.log(ui.item.next('tr'));
-
-				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
-				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
-				var nextId = $nextTr[0].id.split(/\[|\]/g)[1];
-
-				//対象データ取得
-				var thisItem = data[thisId];
-
-				var newData = {};
-				var preItem = null;
-				for (var id in data) {
-					if (id != thisId) {
-						if (id == prevId) {
-							newData[id] = data[id];
-							newData[thisId] = thisItem;
-						} else if (id == nextId) {
-							newData[thisId] = thisItem;
-							newData[id] = data[id];
-						} else {
-							newData[id] = data[id];
-						}
-					}
-				}
-				data = newData;
-
-				//クロージャ内からグローバルのdataに作用できないため
-				setData(newData)
-
-				//当該担当者のみ再描画
-				calcActual(data, thisItem.assignedId);
-				bindRows(data);
-				redrawPanels(data);
-			},
-		});
+		// $leftTbody.append(leftTrs);
+		// $rightTbody.append(rightTrs);
 
 		//左表明細高さ
 		var leftTbodyHeight = $leftTbody.height();
@@ -528,23 +561,24 @@
 		}
 		$('div.rightWrapper').scrollTop(leftScrollTop);
 
-		for (var id in data) {
-			var item = data[id];
-			$('[name="statusId[' + id + ']"]').val([item.statusId]);
-			$('[name="assignedId[' + id + ']"]').val([item.assignedId]);
-		}
+		// //小数２桁表示
+		// $('.dec2').each(function() {
+		// Numbers.formatDec2(this);
+		// });
 
-		//小数２桁表示
-		$('.dec2').each(function() {
-			Numbers.formatDec2(this);
-		});
-
-		//予定期間の背景色設定
-		for (var id in data) {
-			fillPlan(data[id]);
-		}
+		// for (var id in data) {
+		// var item = data[id];
+		// //ステータス・担当者の選択
+		// $('[name="statusId[' + id + ']"]').val([item.statusId]);
+		// $('[name="assignedId[' + id + ']"]').val([item.assignedId]);
+		// //予定期間の背景色設定
+		// fillPlan(data[id]);
+		// }
 	}
 
+	/**
+	 * クロージャ用のグローバル変数のアクセサ
+	 */
 	function setData(newData) {
 		data = newData;
 	}
@@ -672,10 +706,10 @@
 			}
 		}
 
-		//小数２桁表示
-		$('.dec2').each(function() {
-			Numbers.formatDec2(this);
-		});
+		// //小数２桁表示
+		// $('.dec2').each(function() {
+		// Numbers.formatDec2(this);
+		// });
 	}
 
 	/**
@@ -742,7 +776,7 @@
 		//全ての実績パネルを一度に追加
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 
-		var gridSize = ($('table.right>tbody>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
+		var gridSize = ($('table.right>thead>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
 
 		$('.panel').resizable({
 			handles : "e",
