@@ -4,6 +4,12 @@
 	padding: 0px 5px 3px 5px !important;
 }
 
+.progress_manage input, .progress_manage select, .progress_manage button {
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding: 0px;
+}
+
 form > div {
 	display: inline-block;
 	margin-right: 1rem;
@@ -35,19 +41,25 @@ table.progress_manage tbody tr:nth-child(1) {
 table.progress_manage th, table.progress_manage td {
 	border-bottom: solid 1px #ccc;
 	border-right: solid 1px #ccc;
-	height: 2rem;
+	height: 1.5rem;
 	white-space: nowrap;
+}
+
+table.progress_manage tbody tr {
+	height: 1.5rem;
 }
 
 /* タイトル列 */
 table.progress_manage th {
 	background-color: #dfd;
 	font-weight: normal;
+	padding: 0px;
 }
 
 /* 詳細列 */
 table.progress_manage td {
 	background-color: #fff;
+	padding: 0px;
 }
 
 /* 詳細列内容 */
@@ -100,39 +112,38 @@ table.left th, table.left td {
 
 /* 入替 */
 table.left tr th:nth-child(1) {
-	min-width: 4rem;
-	max-width: 4rem;
+	min-width: 3rem;
+	max-width: 3rem;
 }
 /* id */
 table.left tr th:nth-child(2) {
-	min-width: 4rem;
-	max-width: 4rem;
+	min-width: 3rem;
+	max-width: 3rem;
 }
 /* プロジェクト */
 table.left tr td:nth-child(3) {
-	min-width: 6.5rem;
-	max-width: 6.5rem;
+	min-width: 6rem;
+	max-width: 6rem;
 }
 /* バージョン */
 table.left tr td:nth-child(4) {
-	min-width: 6rem;
-	max-width: 6rem;
+	min-width: 5rem;
+	max-width: 5rem;
 }
 /* 題名 */
 table.left tr td:nth-child(5) {
-	min-width: 15rem;
-	max-width: 15rem;
+	min-width: 12rem;
+	max-width: 12rem;
 }
 /* ステータス */
 table.left tr td:nth-child(6) {
-	min-width: 7rem;
-	max-width: 7rem;
-	text-align: center;
+	min-width: 6rem;
+	max-width: 6rem;
 }
 /* 担当者 */
 table.left tr td:nth-child(7) {
-	min-width: 6rem;
-	max-width: 6rem;
+	min-width: 5rem;
+	max-width: 5rem;
 }
 /* 開始日 */
 table.left tr td:nth-child(8) {
@@ -153,19 +164,19 @@ table.left tr td:nth-child(10) {
 }
 /* 実績開始日 */
 table.left tr td:nth-child(11) {
-	min-width: 5rem;
-	max-width: 5rem;
+	min-width: 4rem;
+	max-width: 4rem;
 	text-align: center;
 }
 /* 稼働日数 */
 table.left tr td:nth-child(12) {
-	min-width: 3rem;
-	max-width: 3rem;
+	min-width: 2rem;
+	max-width: 2rem;
 }
 /* 中断日数 */
 table.left tr td:nth-child(13) {
-	min-width: 3rem;
-	max-width: 3rem;
+	min-width: 2rem;
+	max-width: 2rem;
 }
 /* 実績日数 */
 table.left tr td:nth-child(14) {
@@ -176,8 +187,8 @@ table.left tr td:nth-child(14) {
 }
 /* 実績終了日 */
 table.left tr td:nth-child(15) {
-	min-width: 5rem;
-	max-width: 5rem;
+	min-width: 4rem;
+	max-width: 4rem;
 	text-align: center;
 }
 /* 実績終了数 */
@@ -199,8 +210,8 @@ div.rightWrapper {
 }
 
 table.right td {
-	min-width: 2rem;
-	max-width: 2rem;
+	min-width: 1.5rem;
+	max-width: 1.5rem;
 	padding: 0px;
 }
 
@@ -211,7 +222,7 @@ table.right thead td {
 	writing-mode: vertical-rl;
 	text-orientation: sideways-right;
 	font-size: xx-small;
-	height: 58px;
+	/*height: 58px;*/
 	z-index: 1;
 	min-width: 19px;
 	max-width: 19px;

@@ -3,10 +3,25 @@
 <%= javascript_include_tag 'Dates', :plugin => 'progress_manage' %>
 <%= javascript_include_tag 'Numbers', :plugin => 'progress_manage' %>
 <script type="text/javascript">
-
 	var holidays = {};
 
 	var data = {};
+
+	function addScrollstopEvent(selector) {
+		var newEvent = new $.Event('scrollstop');
+		var timer;
+		function newEventTrigger() {
+			if (timer) {
+				clearTimeout(timer);
+			}
+			timer = setTimeout(function() {
+				$(selector).trigger(newEvent);
+			}, 200);
+		}
+
+
+		$(selector).on('scroll', newEventTrigger);
+	}
 
 	/**
 	 * 初期化処理
@@ -87,7 +102,7 @@
 			calcActuals(data);
 			bindRows(data);
 			redrawPanels(data);
-			
+
 			//休日データを更新
 			Ajaxize.postJson('./progress_manage/setHolidays', holidays, function(json) {
 			});
@@ -104,10 +119,60 @@
 		/**
 		 * スクロール連携
 		 */
-		$('div.rightWrapper').on('scroll', function() {
+		addScrollstopEvent('div.rightWrapper');
+		$('div.rightWrapper').on('scrollstop', function() {
 			$('table.left tbody').scrollTop(this.scrollTop);
 			bindRows(data);
 			redrawPanels(data);
+		});
+
+		/*
+		 * 行ドラッグイベント
+		 */
+		$('table.left>tbody').sortable({
+			handle : 'th',
+			stop : function(event, ui) {
+
+				var $prevTr = ui.item.prev('tr');
+				var $thisTr = ui.item;
+				var $nextTr = ui.item.next('tr');
+
+				console.log($prevTr);
+				console.log(ui.item);
+				console.log(ui.item.next('tr'));
+
+				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
+				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
+				var nextId = $nextTr[0].id.split(/\[|\]/g)[1];
+
+				//対象データ取得
+				var thisItem = data[thisId];
+
+				var newData = {};
+				var preItem = null;
+				for (var id in data) {
+					if (id != thisId) {
+						if (id == prevId) {
+							newData[id] = data[id];
+							newData[thisId] = thisItem;
+						} else if (id == nextId) {
+							newData[thisId] = thisItem;
+							newData[id] = data[id];
+						} else {
+							newData[id] = data[id];
+						}
+					}
+				}
+				data = newData;
+
+				//クロージャ内からグローバルのdataに作用できないため
+				setData(newData);
+
+				//当該担当者のみ再描画
+				calcActual(data, thisItem.assignedId);
+				bindRows(data);
+				redrawPanels(data);
+			},
 		});
 
 		/**
@@ -275,18 +340,15 @@
 	});
 
 	function postIssue(item) {
-		Ajaxize.postJson('./progress_manage/putIssue',
-			{
-				id: item.id.replace(/^#/, ''),
-				status_id: item.statusId,
-				assigned_to_id: item.assignedId,
-				start_date: item.startDate,
-				due_date: item.dueDate,
-				lock_version: item.lockVersion
-			},
-			function(json){
-			}
-		);
+		Ajaxize.postJson('./progress_manage/putIssue', {
+			id : item.id.replace(/^#/, ''),
+			status_id : item.statusId,
+			assigned_to_id : item.assignedId,
+			start_date : item.startDate,
+			due_date : item.dueDate,
+			lock_version : item.lockVersion
+		}, function(json) {
+		});
 	}
 
 	/**
@@ -305,7 +367,7 @@
 		var baseM = dispBaseYmd.getMonth();
 		var baseD = dispBaseYmd.getDate();
 		var baseYm = baseY * 100 + baseM;
-		
+
 		var months = $('[name="dispMonths"]').val();
 
 		var theadTds = '';
@@ -318,9 +380,9 @@
 
 			//指定月数で終了
 			var ym = date.getFullYear() * 100 + date.getMonth();
-			
+
 			var monthDiff = (date.getFullYear() * 12 + date.getMonth()) - (baseY * 12 + baseM);
-			
+
 			if (monthDiff >= months && baseD < date.getDate()) {
 				break;
 			}
@@ -357,7 +419,7 @@
 		for (var date = startDate; date <= dueDate; date.setDate(date.getDate() + 1)) {
 			var cell = $('table.right tbody [id="' + Dates.formatYySmmSdd(date) + '[' + item.id + ']"]');
 			//if (!cell.hasClass('holiday')) {
-				cell.addClass('plan');
+			cell.addClass('plan');
 			//}
 		}
 	}
@@ -369,7 +431,12 @@
 		var offsetTop = $('table.left')[0].offsetTop;
 		var theadHeight = $('table.left thead')[0].offsetHeight;
 		var tfootHeight = $('table.left tfoot')[0].offsetHeight;
-		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - 25;
+		var footerHeight = 0;
+		if ($('div[id="footer"]').length > 0) {
+			footerHeight = $('div[id="footer"]')[0].offsetHeight;
+		}
+		var scrollbarHeight = 26;
+		var tbodyScrollHeight = offsetHeight - offsetTop - theadHeight - tfootHeight - footerHeight - scrollbarHeight;
 
 		//明細部のスクロール量
 		var leftScrollTop = $('table.left tbody').scrollTop();
@@ -400,9 +467,10 @@
 		 */
 
 		var assignedId = $('[name="selAssignedId"]').val();
-		
+
 		//セル落ち防止で余分にセル化しておく高さ
 		var scrollBuffer = 1000;
+		scrollBuffer = 100;
 
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
 		var trsHeight = 0;
@@ -423,15 +491,20 @@
 			if ((trsHeight < leftScrollTop - scrollBuffer) || (tbodyScrollHeight + leftScrollTop + trHeight + scrollBuffer < trsHeight)) {
 
 				//上側の非表示行か下側の非表示行なら空行を設定
-				leftTr = '<tr><td></td></tr>';
-				rightTr = '<tr><td></td></tr>';
+				leftTr = '<tr></tr>';
+				rightTr = '<tr></tr>';
 
 			} else {
 
 				//左側表文字列に追加
-				var leftTr = leftTbodyHtml.replaceAll('#', item.id);
+				var leftTr = leftTbodyHtml.replaceAll('_#', item.id.replace(/#/, ''));
+				var leftTr = leftTr.replaceAll('#', item.id);
 				for (var k in item) {
-					leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
+					if (k == "boDate" || k == "eoDate") {
+						leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item[k])));
+					} else {
+						leftTr = leftTr.replaceAll('\[\[' + k + '\]\]', item[k]);
+					}
 				}
 				leftTr = leftTr.replaceAll(/\[\[.+?\]\]/g, '');
 
@@ -439,59 +512,22 @@
 				var rightTr = rightTbodyHtml.replaceAll('#', item.id);
 			}
 
-			leftTrs += leftTr;
-			rightTrs += rightTr;
+			$leftTbody.append(leftTr);
+			$rightTbody.append(rightTr);
+
+			//ステータス・担当者の選択
+			$('[name="statusId[' + id + ']"]').val([item.statusId]);
+			$('[name="assignedId[' + id + ']"]').val([item.assignedId]);
+			//予定期間の背景色設定
+			fillPlan(data[id]);
+
+			// leftTrs += leftTr;
+			// rightTrs += rightTr;
 		}
 
 		//左側表と右側表に全件反映
-		$leftTbody.append(leftTrs);
-		$rightTbody.append(rightTrs);
-		
-		$('table.left>tbody').sortable({
-			handle: 'th',
-			stop: function(event, ui) {
-				
-				var $prevTr = ui.item.prev('tr');
-				var $thisTr = ui.item;
-				var $nextTr = ui.item.next('tr');
-
-				console.log($prevTr);
-				console.log(ui.item);
-				console.log(ui.item.next('tr'));
-
-				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
-				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
-				var nextId = $nextTr[0].id.split(/\[|\]/g)[1];
-				
-				//対象データ取得
-				var thisItem = data[thisId];
-
-				var newData = {};
-				var preItem = null;
-				for (var id in data) {
-					if (id != thisId) {
-						if (id == prevId) {
-							newData[id] = data[id];
-							newData[thisId] = thisItem;
-						} else if (id == nextId) {
-							newData[thisId] = thisItem;
-							newData[id] = data[id];
-						} else {
-							newData[id] = data[id];
-						}
-					}
-				}
-				data = newData;
-				
-				//クロージャ内からグローバルのdataに作用できないため
-				setData(newData)
-
-				//当該担当者のみ再描画
-				calcActual(data, thisItem.assignedId);
-				bindRows(data);
-				redrawPanels(data);
-			},
-		});
+		// $leftTbody.append(leftTrs);
+		// $rightTbody.append(rightTrs);
 
 		//左表明細高さ
 		var leftTbodyHeight = $leftTbody.height();
@@ -501,7 +537,7 @@
 		$leftTbody.scrollTop(leftScrollTop);
 
 		//反映後に、右側表の高さ調整と元の位置までスクロール
-		$('div.rightWrapper').css('height', offsetHeight - offsetTop - 8);
+		$('div.rightWrapper').css('height', offsetHeight - offsetTop - footerHeight - 10);
 		$rightTbody.css('height', tbodyScrollHeight);
 		//行数が表示高さに満たない場合は、フッタまでスペースを確保する
 		if (leftTbodyHeight < tbodyScrollHeight) {
@@ -515,23 +551,24 @@
 		}
 		$('div.rightWrapper').scrollTop(leftScrollTop);
 
-		for (var id in data) {
-			var item = data[id];
-			$('[name="statusId[' + id + ']"]').val([item.statusId]);
-			$('[name="assignedId[' + id + ']"]').val([item.assignedId]);
-		}
+		// //小数２桁表示
+		// $('.dec2').each(function() {
+		// Numbers.formatDec2(this);
+		// });
 
-		//小数２桁表示
-		$('.dec2').each(function() {
-			Numbers.formatDec2(this);
-		});
-
-		//予定期間の背景色設定
-		for (var id in data) {
-			fillPlan(data[id]);
-		}
+		// for (var id in data) {
+		// var item = data[id];
+		// //ステータス・担当者の選択
+		// $('[name="statusId[' + id + ']"]').val([item.statusId]);
+		// $('[name="assignedId[' + id + ']"]').val([item.assignedId]);
+		// //予定期間の背景色設定
+		// fillPlan(data[id]);
+		// }
 	}
-	
+
+	/**
+	 * クロージャ用のグローバル変数のアクセサ
+	 */
 	function setData(newData) {
 		data = newData;
 	}
@@ -575,7 +612,7 @@
 				//実績基準日を、１件目の実績開始日か、システム日に設定
 				if (baseBoDate == null) {
 					if (item.boDate && item.manDays && item.statusId != '1') {
-						baseBoDate = Dates.parseYySmmSdd(item.boDate);
+						baseBoDate = Dates.parseYyyyHmmHdd(item.boDate);
 					} else {
 						baseBoDate = new Date();
 					}
@@ -583,19 +620,19 @@
 
 				//実績開始日
 				var boDate = new Date(baseBoDate.getFullYear(), baseBoDate.getMonth(), baseBoDate.getDate());
-				if (item.boDays > 0) {
-					var workDays = 0;
-					while (true) {
-						boDate.setDate(boDate.getDate() + 1);
-						var boDay = boDate.getDay();
-						if (0 < boDay && boDay < 6 && !holidays[Dates.formatYyyyHmmHdd(boDate)]) {++workDays;
-						}
-						if (Math.floor(item.boDays) <= workDays) {
-							break;
-						}
+				//if (item.boDays > 0) {
+				var workDays = 0;
+				while (true) {
+					var boDay = boDate.getDay();
+					if (0 < boDay && boDay < 6 && !holidays[Dates.formatYyyyHmmHdd(boDate)]) {++workDays;
 					}
+					if (Math.floor(item.boDays) < workDays) {
+						break;
+					}
+					boDate.setDate(boDate.getDate() + 1);
 				}
-				item.boDate = Dates.formatYySmmSdd(boDate);
+				//}
+				item.boDate = Dates.formatYyyyHmmHdd(boDate);
 
 				//稼働日数
 				var days = 0;
@@ -627,7 +664,7 @@
 						}
 					}
 				}
-				item.eoDate = Dates.formatYySmmSdd(eoDate);
+				item.eoDate = Dates.formatYyyyHmmHdd(eoDate);
 
 				//実績終了数
 				eoDays += item.manDays;
@@ -636,33 +673,33 @@
 				//当該行の再計算結果を表示
 				var $leftTr = $('table.left tbody tr[id="leftTr[' + id + ']"]');
 				$leftTr.find('[id="boDays[' + id + ']"]').html(item.boDays);
-				$leftTr.find('[id="boDate[' + id + ']"]').html(item.boDate);
+				$leftTr.find('[id="boDate[' + id + ']"]').html(Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.boDate)));
 				$leftTr.find('[id="manDays[' + id + ']"]').html(item.manDays);
-				$leftTr.find('[id="eoDate[' + id + ']"]').html(item.eoDate);
+				$leftTr.find('[id="eoDate[' + id + ']"]').html(Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.eoDate)));
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
-				
-				Ajaxize.postJson('./progress_manage/putActualSpan',
-					{
-						id: item.actualSpanId,
-						issue_id: id.replace(/^#/, ''),
-						bo_days: item.boDays,
-						bo_date: item.boDate,
-						days: item.days,
-						suspends: item.suspends,
-						man_days: item.manDays,
-						eo_date: item.eoDate,
-						eo_days: item.eoDays,
-					},
-					function(json){
-					}
-				);
+
+				boYmd = Dates.formatYyyyHmmHdd(boDate);
+				eoYmd = Dates.formatYyyyHmmHdd(eoDate);
+
+				Ajaxize.postJson('./progress_manage/putActualSpan', {
+					id : item.actualSpanId,
+					issue_id : id.replace(/^#/, ''),
+					bo_days : item.boDays,
+					bo_date : boYmd,
+					days : item.days,
+					suspends : item.suspends,
+					man_days : item.manDays,
+					eo_date : eoYmd,
+					eo_days : item.eoDays,
+				}, function(json) {
+				});
 			}
 		}
 
-		//小数２桁表示
-		$('.dec2').each(function() {
-			Numbers.formatDec2(this);
-		});
+		// //小数２桁表示
+		// $('.dec2').each(function() {
+		// Numbers.formatDec2(this);
+		// });
 	}
 
 	/**
@@ -695,18 +732,18 @@
 			}
 
 			//実績終了日が表示基準日より過去ならスキップ
-			if (Dates.parseYySmmSdd(item.eoDate) < dispBaseYmd) {
+			if (Dates.parseYyyyHmmHdd(item.eoDate) < dispBaseYmd) {
 				continue;
 			}
 
 			//実績開始日が表示基準日より過去なら表示基準日から描画
 			var boDate = item.boDate;
-			if (Dates.parseYySmmSdd(boDate) < dispBaseYmd) {
+			if (Dates.parseYyyyHmmHdd(boDate) < dispBaseYmd) {
 				boDate = Dates.formatYySmmSdd(dispBaseYmd);
 			}
 
 			//表示されていない行ならスキップ
-			var $boDateCell = $rightTbody.find('[id="' + boDate + '[' + id + ']"]');
+			var $boDateCell = $rightTbody.find('[id="' + Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(boDate)) + '[' + id + ']"]');
 			if ($boDateCell.length == 0) {
 				continue;
 			}
@@ -716,7 +753,7 @@
 			var t = $boDateCell[0].offsetTop - theadHeight;
 
 			//実績終了日セルから、パネルの高さ・幅を取得
-			var $eoDateCell = $rightTbody.find('[id="' + item.eoDate + '[' + id + ']"]');
+			var $eoDateCell = $rightTbody.find('[id="' + Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.eoDate)) + '[' + id + ']"]');
 			var h = $eoDateCell[0].offsetHeight - 1;
 			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - l - 2;
 
@@ -729,10 +766,10 @@
 		//全ての実績パネルを一度に追加
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 
-		var gridSize = ($('table.right>tbody>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
-		
+		var gridSize = ($('table.right>thead>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
+
 		$('.panel').resizable({
-			handles: "e",
+			handles : "e",
 			//リサイズ時のグリッドサイズ
 			grid : gridSize,
 			/**
@@ -743,18 +780,18 @@
 				//パネルの個数
 				var panelWidth = ui.size.width;
 				var panelGrids = Math.round(panelWidth / gridSize, 0);
-				
+
 				//チケットID
 				var panelId = ui.element.attr('id');
 				var issueId = panelId.replace(/^panel\_/, '');
-				
+
 				//実績開始日
 				var boDateValue = $('[id="boDate[' + issueId + ']"]').html();
 				var boDate = Dates.parseYySmmSdd(boDateValue);
 				var boY = boDate.getFullYear();
 				var boM = boDate.getMonth();
 				var boD = boDate.getDate();
-				
+
 				//実績終了日
 				var eoDate = new Date(boY, boM, boD);
 				eoDate.setDate(eoDate.getDate() + panelGrids);
@@ -767,12 +804,11 @@
 						break;
 					}
 					var day = date.getDay();
-					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(date)]) {
-						++days;
+					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(date)]) {++days;
 					}
 					date.setDate(date.getDate() + 1);
 				}
-				
+
 				var item = data[issueId];
 				var manDays = days;
 				if (item.suspends) {
@@ -781,9 +817,9 @@
 				}
 				item.days = days;
 				item.manDays = manDays;
-				
+
 				$('[name="days[' + issueId + ']"]').val(days);
-				
+
 				calcActual(data, item.assignedId);
 				redrawPanels(data);
 			}
@@ -850,7 +886,7 @@
 				<th title="[[id]]">[[id]]</th>
 				<td title="[[projectName]]">[[projectName]]</td>
 				<td title="[[version]]">[[version]]</td>
-				<td title="[[subject]]"><a href="./issues/#">[[subject]]</a></td>
+				<td title="[[subject]]"><a href="./issues/_#">[[subject]]</a></td>
 				<td><select name="statusId[#]"></select></td>
 				<td><select name="assignedId[#]"></select></td>
 				<td>
