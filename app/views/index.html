@@ -17,6 +17,9 @@
 
 	var data = {};
 
+	/**
+	 * 対象の要素にスクロール停止時イベントを設定
+	 */
 	function addScrollstopEvent(selector) {
 		var newEvent = new $.Event('scrollstop');
 		var timer;
@@ -25,11 +28,10 @@
 				clearTimeout(timer);
 			}
 			timer = setTimeout(function() {
+				//スクロール時は0.2秒おきに監視して、スクロールが終わっているとtimerがクリアされる
 				$(selector).trigger(newEvent);
 			}, 200);
 		}
-
-
 		$(selector).on('scroll', newEventTrigger);
 	}
 
@@ -73,14 +75,6 @@
 			for (var userId in json) {
 				$('[name^="assignedId"]').append('<option value="' + userId + '">' + json[userId] + '</option>');
 			}
-		});
-
-		//実績期間を計算・データ表示・実績期間を表示
-		Ajaxize.getJson('./progress_manage/search', function(json) {
-			data = json;
-			calcActuals(data);
-			bindRows(data);
-			redrawPanels(data);
 		});
 
 		/* ******************************
@@ -268,6 +262,9 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
+			//実績のみ再描画
+			calcActuals(data);
+			redrawPanels(data);
 			//チケット内容を更新
 			postIssue(thisItem);
 		});
@@ -283,11 +280,11 @@
 			//バインドデータを更新
 			var columnName = names[0];
 			thisItem[columnName] = this.value;
-			//チケット内容を更新
-			postIssue(thisItem);
 			//実績のみ再描画
 			calcActuals(data);
 			redrawPanels(data);
+			//チケット内容を更新
+			postIssue(thisItem);
 		});
 
 		/**
@@ -347,8 +344,19 @@
 				}
 			}
 		});
+
+		//以上で画面の状態が整ったら、実績期間を計算・データ表示・実績期間を表示
+		Ajaxize.getJson('./progress_manage/search', function(json) {
+			data = json;
+			calcActuals(data);
+			bindRows(data);
+			redrawPanels(data);
+		});
 	});
 
+	/**
+	 * チケットの更新
+	 */
 	function postIssue(item) {
 		Ajaxize.postJson('./progress_manage/putIssue', {
 			id : item.id.replace(/^#/, ''),
@@ -480,7 +488,6 @@
 
 		//セル落ち防止で余分にセル化しておく高さ
 		var scrollBuffer = 1000;
-		scrollBuffer = 100;
 
 		//データ全件でループして左側表全件文字列と右側表全件文字列を作成
 		var trsHeight = 0;
@@ -779,6 +786,7 @@
 		var gridSize = ($('table.right>thead>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
 
 		$('.panel').resizable({
+			//右方向にのみリサイズ
 			handles : "e",
 			//リサイズ時のグリッドサイズ
 			grid : gridSize,
@@ -833,6 +841,67 @@
 				calcActual(data, item.assignedId);
 				redrawPanels(data);
 			}
+		});
+
+		$('.panel').draggable({
+			axis: 'x',
+			grid: [ gridSize, 0 ],
+			/**
+			 * リサイズ終了時のイベント
+			 */
+			stop : function(event, ui) {
+				
+// 				var uiOffsetLeft = ui.offset.left * 1;
+// 				var wrapperScrollLeft = $('.rightWrapper')[0].scrollLeft * 1;
+// 				var wrapperOffsetLeft = $('.rightWrapper')[0].offsetLeft * 1 + 3;
+// 				var uiScrollLeft = uiOffsetLeft + wrapperScrollLeft - wrapperOffsetLeft;
+// 				var leftGrids = uiScrollLeft / gridSize;
+// 				console.log(leftGrids);
+				
+				//移動したグリッド数
+				var orgPosition = ui.originalPosition.left * 1;
+				var newPosition = ui.position.left * 1;
+				var moveWidth = newPosition - orgPosition;
+				var moveGrids = moveWidth / gridSize;
+				console.log(moveGrids);
+
+				var panelId = ui.helper.attr('id');
+				var issueId = panelId.replace(/^panel\_/, '');
+
+				//実績開始日
+				var boDateValue = $('[id="boDate[' + issueId + ']"]').html();
+				var boDate = Dates.parseYySmmSdd(boDateValue);
+				boDate.setDate(boDate.getDate() + moveGrids);
+				while (true) {
+					var day = boDate.getDay();
+					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(boDate)]) {
+						break;
+					}
+					boDate.setDate(boDate.getDate() + 1);
+				}
+				//$('[id="boDate[' + issueId + ']"]').html(Dates.formatYySmmSdd(boDate));
+
+				//実績終了日
+				var eoDateValue = $('[id="eoDate[' + issueId + ']"]').html();
+				var eoDate = Dates.parseYySmmSdd(eoDateValue);
+				eoDate.setDate(eoDate.getDate() + moveGrids + 1);
+				eoDate.setSeconds(-1);
+				while (true) {
+					var day = eoDate.getDay();
+					if (0 < day && day < 6 && !holidays[Dates.formatYyyyHmmHdd(eoDate)]) {
+						break;
+					}
+					eoDate.setDate(eoDate.getDate() + 1);
+				}
+				//$('[id="eoDate[' + issueId + ']"]').html(Dates.formatYySmmSdd(eoDate));
+				
+				var item = data[issueId];
+				item.boDate = Dates.formatYyyyHmmHdd(boDate);
+				item.eoDate = Dates.formatYyyyHmmHdd(eoDate);
+				
+				calcActual(data, item.assignedId);
+				redrawPanels(data);
+			},
 		});
 	}
 
@@ -905,17 +974,17 @@
 				<td>
 				<input type="date" name="dueDate[#]" value="[[dueDate]]" />
 				</td>
-				<td id="boDays[#]" title="[[boDays]]" class="dec2">[[boDays]]</td>
-				<td id="boDate[#]" title="[[boDate]]">[[boDate]]</td>
+				<td id="boDays[#]" class="dec2">[[boDays]]</td>
+				<td id="boDate[#]">[[boDate]]</td>
 				<td>
 				<input type="text" name="days[#]" value="[[days]]" />
 				</td>
 				<td>
 				<input type="text" name="suspends[#]" value="[[suspends]]" />
 				</td>
-				<td id="manDays[#]" title="[[manDays]]" class="dec2">[[manDays]]</td>
-				<td id="eoDate[#]" title="[[eoDate]]">[[eoDate]]</td>
-				<td id="eoDays[#]" title="[[eoDays]]" class="dec2">[[eoDays]]</td>
+				<td id="manDays[#]" class="dec2">[[manDays]]</td>
+				<td id="eoDate[#]">[[eoDate]]</td>
+				<td id="eoDays[#]" class="dec2">[[eoDays]]</td>
 			</tr>
 		</tbody>
 		<tfoot>
