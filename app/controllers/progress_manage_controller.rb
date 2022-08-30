@@ -11,7 +11,7 @@ class ProgressManageController < ApplicationController
     #
     def holidays
         jsonText = "{"
-        ActualHoliday.all.each{|actualHoliday|
+        ActualHoliday.all.order(holiday: "DESC").each{|actualHoliday|
             if jsonText != "{"
                 jsonText += ","
             end
