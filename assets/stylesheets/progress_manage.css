@@ -224,8 +224,8 @@ table.right thead td {
 	font-size: xx-small;
 	/*height: 58px;*/
 	z-index: 1;
-	min-width: 19px;
-	max-width: 19px;
+	min-width: 1.5rem;
+	max-width: 1.5rem;
 }
 
 table.right tfoot td {

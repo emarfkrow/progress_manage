@@ -783,7 +783,7 @@
 		//全ての実績パネルを一度に追加
 		$rightTbody.find('tr:nth-child(1)').after(panelWrappers);
 
-		var gridSize = ($('table.right>thead>tr>td').css('min-width').replace(/px$/, '') * 1) + 1;
+		var gridSize = ($('table.right>thead>tr>td').css('min-width').replace(/px$/, '') * 1) + 2;
 
 		$('.panel').resizable({
 			//右方向にのみリサイズ
