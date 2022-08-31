@@ -12,7 +12,7 @@ class ProgressManageController < ApplicationController
     def holidays
         jsonText = "{"
         ActualHoliday.all.order(holiday: "DESC").each{|actualHoliday|
-            if jsonText != "{"
+            if jsonText != "{" then
                 jsonText += ","
             end
             jsonText += "\"" + actualHoliday.holiday.to_s + "\":\"1\""
@@ -26,8 +26,8 @@ class ProgressManageController < ApplicationController
     #
     def statuses
         jsonText = "{"
-        IssueStatus.all.each{|status|
-            if jsonText != "{"
+        IssueStatus.all.order(:id).each{|status|
+            if jsonText != "{" then
                 jsonText += ","
             end
             jsonText += "\"" + status.id.to_s + "\":\"" + status.name + "\""
@@ -41,8 +41,8 @@ class ProgressManageController < ApplicationController
     #
     def users
         jsonText = "{"
-        User.all.each{|user|
-            if jsonText != "{"
+        User.all.order(:id).each{|user|
+            if jsonText != "{" then
                 jsonText += ","
             end
             jsonText += "\"" + user.id.to_s + "\":\"" + user.lastname + " " + user.firstname + "\""
@@ -66,7 +66,7 @@ class ProgressManageController < ApplicationController
         .all
         .order(:bo_date).order(:id)
         .each{|actualSpan|
-            if jsonText != "{"
+            if jsonText != "{" then
                 jsonText += ","
             end
             jsonText += "\"#" + actualSpan.id.to_s + "\":{"
@@ -101,8 +101,6 @@ class ProgressManageController < ApplicationController
         params.each{|k,v|
             next if k == "controller"
             next if k == "action"
-            # permitted = params.permit(k)
-            # ActualHoliday.create(permitted)
             sql = "INSERT INTO actual_holidays (holiday) VALUES ('" + k + "')"
             ActiveRecord::Base.connection.execute(sql)
         }
@@ -113,10 +111,6 @@ class ProgressManageController < ApplicationController
     # チケット更新
     #
     def putIssue
-        # permitted = params.permit(:id, :status_id, :assigned_to_id, :start_date, :due_date, :lock_version)
-        # issue = Issue.find(params[:id])
-        # issue.update(permitted)
-
         sql = "UPDATE issues "
         sql += "SET "
         sql += "    status_id = " + params[:status_id]
@@ -136,10 +130,10 @@ class ProgressManageController < ApplicationController
     def putActualSpan
         permitted = params.permit(:id, :issue_id, :bo_days, :bo_date, :days, :suspends, :man_days, :eo_date, :eo_days)
         actualSpan = ActualSpan.where(["issue_id = :issue_id", {:issue_id => params[:issue_id]}]).all
-        if actualSpan.count == 0
+        if actualSpan.count == 0 then
             actualSpan = ActualSpan.create(permitted)
         else
-        actualSpan.update(permitted)
+            actualSpan.update(permitted)
         end
         render json: actualSpan
     end

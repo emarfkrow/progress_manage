@@ -1,5 +1,5 @@
 search({
-"#24":{ id:'#24',projectName:'販売WEB',version:'01.要件定義',statusId:'1',assignedId:'0966',subject:'業務フロー図'},
+"#24":{ id:'#24',projectName:'販売WEB',version:'01.要件定義',statusId:'1',assignedId:'0966',subject:'業務フロー図',startDate:'2022-01-01',dueDate:'2022-12-31'},
 "#25":{ id:'#25',projectName:'販売WEB',version:'01.要件定義',statusId:'1',assignedId:'0966',subject:'システム化課題一覧表'},
 "#26":{ id:'#26',projectName:'販売WEB',version:'01.要件定義',statusId:'1',assignedId:'0966',subject:'セキュリティ要件書'},
 "#27":{ id:'#27',projectName:'販売WEB',version:'01.要件定義',statusId:'1',assignedId:'0966',subject:'システム構成図'},

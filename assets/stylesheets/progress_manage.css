@@ -260,3 +260,7 @@ table.right .plan {
 	opacity: 0.5;
 	font-size: small;
 }
+
+.grabbable:hover {
+	cursor: grab;
+}

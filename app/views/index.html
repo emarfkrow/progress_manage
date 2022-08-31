@@ -57,7 +57,7 @@
 			redrawDays(holidays);
 		});
 
-		//ステータスプルダウンを設定
+		//非表示のテンプレート行のステータスプルダウンを設定
 		Ajaxize.getJson('./progress_manage/statuses', function(json) {
 			$('[name^="statusId"]').html('<option></option>');
 			for (var statusId in json) {
@@ -65,7 +65,7 @@
 			}
 		});
 
-		//担当者プルダウンを設定
+		//非表示のテンプレート行の担当者プルダウンを設定
 		Ajaxize.getJson('./progress_manage/users', function(json) {
 			$('[name^="selAssignedId"]').html('<option></option>');
 			for (var userId in json) {
@@ -134,16 +134,13 @@
 		 * 行ドラッグイベント
 		 */
 		$('table.left>tbody').sortable({
+			axis : 'y',
 			handle : 'th',
 			stop : function(event, ui) {
 
 				var $prevTr = ui.item.prev('tr');
 				var $thisTr = ui.item;
 				var $nextTr = ui.item.next('tr');
-
-				console.log($prevTr);
-				console.log(ui.item);
-				console.log(ui.item.next('tr'));
 
 				var prevId = $prevTr[0].id.split(/\[|\]/g)[1];
 				var thisId = $thisTr[0].id.split(/\[|\]/g)[1];
@@ -523,25 +520,12 @@
 				leftTr = leftTr.replaceAll(/\[\[.+?\]\]/g, '');
 
 				//右側表文字列に追加
-				var rightTr = rightTbodyHtml.replaceAll('#', item.id);
+				rightTr = rightTbodyHtml.replaceAll('#', item.id);
 			}
 
 			$leftTbody.append(leftTr);
 			$rightTbody.append(rightTr);
-
-			//ステータス・担当者の選択
-			$('[name="statusId[' + id + ']"]').val([item.statusId]);
-			$('[name="assignedId[' + id + ']"]').val([item.assignedId]);
-			//予定期間の背景色設定
-			fillPlan(data[id]);
-
-			// leftTrs += leftTr;
-			// rightTrs += rightTr;
 		}
-
-		//左側表と右側表に全件反映
-		// $leftTbody.append(leftTrs);
-		// $rightTbody.append(rightTrs);
 
 		//左表明細高さ
 		var leftTbodyHeight = $leftTbody.height();
@@ -570,14 +554,22 @@
 		// Numbers.formatDec2(this);
 		// });
 
-		// for (var id in data) {
-		// var item = data[id];
-		// //ステータス・担当者の選択
-		// $('[name="statusId[' + id + ']"]').val([item.statusId]);
-		// $('[name="assignedId[' + id + ']"]').val([item.assignedId]);
-		// //予定期間の背景色設定
-		// fillPlan(data[id]);
-		// }
+		//レンダリングが間に合わないようなので１ミリ秒遅らせる
+		setTimeout(function(){
+			for (var id in data) {
+				var item = data[id];
+				var $leftTr = $('table.left tbody tr[id="leftTr[' + id + ']"]');
+				if ($leftTr.length > 0) {
+					//ステータス・担当者の選択
+					$leftTr.find('[name="statusId[' + id + ']"]').val(item.statusId);
+					$leftTr.find('[name="assignedId[' + id + ']"]').val(item.assignedId);
+					$leftTr.find('[name="startDate[' + id + ']"]').val(item.startDate);
+					$leftTr.find('[name="dueDate[' + id + ']"]').val(item.dueDate);
+					//予定期間の背景色設定
+					fillPlan(item);
+				}
+			}
+		}, 1);
 	}
 
 	/**
@@ -850,19 +842,11 @@
 			 */
 			stop : function(event, ui) {
 
-				// 				var uiOffsetLeft = ui.offset.left * 1;
-				// 				var wrapperScrollLeft = $('.rightWrapper')[0].scrollLeft * 1;
-				// 				var wrapperOffsetLeft = $('.rightWrapper')[0].offsetLeft * 1 + 3;
-				// 				var uiScrollLeft = uiOffsetLeft + wrapperScrollLeft - wrapperOffsetLeft;
-				// 				var leftGrids = uiScrollLeft / gridSize;
-				// 				console.log(leftGrids);
-
 				//移動したグリッド数
 				var orgPosition = ui.originalPosition.left * 1;
 				var newPosition = ui.position.left * 1;
 				var moveWidth = newPosition - orgPosition;
 				var moveGrids = moveWidth / gridSize;
-				console.log(moveGrids);
 
 				var panelId = ui.helper.attr('id');
 				var issueId = panelId.replace(/^panel\_/, '');
@@ -878,7 +862,6 @@
 					}
 					boDate.setDate(boDate.getDate() + 1);
 				}
-				//$('[id="boDate[' + issueId + ']"]').html(Dates.formatYySmmSdd(boDate));
 
 				//実績終了日
 				var eoDateValue = $('[id="eoDate[' + issueId + ']"]').html();
@@ -892,7 +875,6 @@
 					}
 					eoDate.setDate(eoDate.getDate() + 1);
 				}
-				//$('[id="eoDate[' + issueId + ']"]').html(Dates.formatYySmmSdd(eoDate));
 
 				var item = data[issueId];
 				item.boDate = Dates.formatYyyyHmmHdd(boDate);
@@ -961,17 +943,17 @@
 		<tbody>
 			<tr id="leftTr[#]">
 				<th><a href="javascript:void(0);" id="upper[#]" class="button">↑</a><a href="javascript:void(0);" id="downer[#]" class="button">↓</a></th>
-				<th title="[[id]]">[[id]]</th>
+				<th title="[[id]]" class="grabbable">[[id]]</th>
 				<td title="[[projectName]]">[[projectName]]</td>
 				<td title="[[version]]">[[version]]</td>
 				<td title="[[subject]]"><a href="./issues/_#" target="[#]">[[subject]]</a></td>
 				<td><select name="statusId[#]"></select></td>
 				<td><select name="assignedId[#]"></select></td>
 				<td>
-				<input type="date" name="startDate[#]" value="[[startDate]]" />
+				<input type="date" name="startDate[#]" />
 				</td>
 				<td>
-				<input type="date" name="dueDate[#]" value="[[dueDate]]" />
+				<input type="date" name="dueDate[#]" />
 				</td>
 				<td id="boDays[#]" class="dec2">[[boDays]]</td>
 				<td id="boDate[#]">[[boDate]]</td>
