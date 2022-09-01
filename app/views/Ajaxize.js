@@ -9,7 +9,7 @@ var Ajaxize = {
 	},
 
 	postJson: function(url, dataJson, callback, async) {
-		Ajaxize.ajaxJson(url, 'post', dataJson, callback, async);
+		//dummy対応 Ajaxize.ajaxJson(url, 'post', dataJson, callback, async);
 	},
 
 	ajaxJson: function(url, method, dataJson, callback, async) {
