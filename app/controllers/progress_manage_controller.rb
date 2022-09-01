@@ -72,9 +72,25 @@ class ProgressManageController < ApplicationController
             jsonText += "\"#" + actualSpan.id.to_s + "\":{"
             jsonText += "\"id\":\"#" + actualSpan.id.to_s + "\","
             jsonText += "\"projectName\":\"" + actualSpan.project_name + "\","
-            jsonText += "\"version\":\"" + actualSpan.version + "\","
-            jsonText += "\"statusId\":\"" + actualSpan.status_id.to_s + "\","
-            jsonText += "\"assignedId\":\"" + actualSpan.assigned_to_id.to_s + "\","
+            
+            version = ""
+            if actualSpan.version != nil then
+            	version = actualSpan.version
+            end
+            jsonText += "\"version\":\"" + version + "\","
+            
+            status_id = ""
+            if actualSpan.status_id != nil then
+            	status_id = actualSpan.status_id
+            end
+            jsonText += "\"statusId\":\"" + status_id.to_s + "\","
+            
+            assigned_to_id = ""
+            if actualSpan.assigned_to_id != nil then
+            	assigned_to_id = actualSpan.assigned_to_id
+            end
+            jsonText += "\"assignedId\":\"" + assigned_to_id.to_s + "\","
+            
             jsonText += "\"startDate\":\"" + actualSpan.start_date.to_s + "\","
             jsonText += "\"dueDate\":\"" + actualSpan.due_date.to_s + "\","
             jsonText += "\"subject\":\"" + actualSpan.subject + "\","
@@ -111,12 +127,25 @@ class ProgressManageController < ApplicationController
     # チケット更新
     #
     def putIssue
+
         sql = "UPDATE issues "
         sql += "SET "
         sql += "    status_id = " + params[:status_id]
-        sql += "    , assigned_to_id = " + params[:assigned_to_id]
-        sql += "    , start_date = '" + params[:start_date] + "'"
-        sql += "    , due_date = '" + params[:due_date] + "'"
+        if params[:assigned_to_id] == "" then
+	        sql += "    , assigned_to_id = null"
+        else
+	        sql += "    , assigned_to_id = " + params[:assigned_to_id]
+        end
+        if params[:start_date] == "" then
+	        sql += "    , start_date = null"
+        else
+	        sql += "    , start_date = '" + params[:start_date] + "'"
+        end
+        if params[:due_date] == "" then
+	        sql += "    , due_date = null"
+        else
+	        sql += "    , due_date = '" + params[:due_date] + "'"
+        end
         sql += " WHERE "
         sql += "    id = " + params[:id]
         ActiveRecord::Base.connection.execute(sql)
@@ -133,7 +162,7 @@ class ProgressManageController < ApplicationController
         if actualSpan.count == 0 then
             actualSpan = ActualSpan.create(permitted)
         else
-            actualSpan.update(permitted)
+        actualSpan.update(permitted)
         end
         render json: actualSpan
     end

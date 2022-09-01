@@ -49,7 +49,7 @@
 
 		//非表示のテンプレート行のステータスプルダウンを設定
 		Ajaxize.getJson('./progress_manage/statuses', function(json) {
-			$('[name^="statusId"]').html('<option></option>');
+			$('[name^="statusId"]').html('');
 			for (var statusId in json) {
 				$('[name^="statusId"]').append('<option value="' + statusId + '">' + json[statusId] + '</option>');
 			}
