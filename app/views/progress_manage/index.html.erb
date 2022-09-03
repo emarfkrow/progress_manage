@@ -39,7 +39,7 @@
 		//休日設定を表示・横軸（日付）の表示
 		Ajaxize.getJson('./progress_manage/holidays', function(json) {
 			holidays = json;
-			var holidayList = '';
+			var holidayList = '\r\n';
 			for (var holiday in holidays) {
 				holidayList += holiday + '\r\n';
 			}
@@ -58,12 +58,11 @@
 		//非表示のテンプレート行の担当者プルダウンを設定
 		Ajaxize.getJson('./progress_manage/users', function(json) {
 			$('[name^="selAssignedId"]').html('<option></option>');
-			for (var userId in json) {
-				$('[name^="selAssignedId"]').append('<option value="' + userId + '">' + json[userId] + '</option>');
-			}
 			$('[name^="assignedId"]').html('<option></option>');
-			for (var userId in json) {
-				$('[name^="assignedId"]').append('<option value="' + userId + '">' + json[userId] + '</option>');
+			for (var i in json) {
+				var item = json[i];
+				$('[name^="selAssignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				$('[name^="assignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
 			}
 		});
 

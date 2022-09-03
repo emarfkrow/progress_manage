@@ -40,15 +40,17 @@ class ProgressManageController < ApplicationController
     # ユーザーリスト
     #
     def users
-        jsonText = "{"
-        User.all.order(:id).each{|user|
-            if jsonText != "{" then
-                jsonText += ","
-            end
-            jsonText += "\"" + user.id.to_s + "\":\"" + user.lastname + " " + user.firstname + "\""
-        }
-        jsonText += "}"
-        render json: JSON.parse(jsonText)
+        # jsonText = "{"
+        # User.all.order(:id).each{|user|
+            # if jsonText != "{" then
+                # jsonText += ","
+            # end
+            # jsonText += "\"" + user.id.to_s + "\":\"" + user.lastname + " " + user.firstname + "\""
+        # }
+        # jsonText += "}"
+        # render json: JSON.parse(jsonText)
+        users = User.where("language <> ''").all.order(:login)
+        render json: users
     end
 
     #
@@ -64,7 +66,7 @@ class ProgressManageController < ApplicationController
         .select("issues.*, s.id as actual_span_id, s.bo_days, s.bo_date, s.days, s.suspends, s.man_days, s.eo_date, s.eo_days, projects.name as project_name, v.name as version")
         .where(["ist.is_closed = :closed", {:closed => false}])
         .all
-        .order(:bo_date).order(:id)
+        .order(:bo_date).order(:start_date).order(:id)
         .each{|actualSpan|
             if jsonText != "{" then
                 jsonText += ","
