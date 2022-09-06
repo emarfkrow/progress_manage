@@ -20,6 +20,7 @@ var Ajaxize = {
 
 		$.ajax({
 			async: async,
+			cache: false,
 			url: url,
 			type: method,
 			data: dataJson,
@@ -36,4 +37,4 @@ var Ajaxize = {
 		});
 	},
 
-}
+};
