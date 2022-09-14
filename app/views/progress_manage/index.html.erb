@@ -750,7 +750,15 @@
 			var t = $boDateCell[0].offsetTop - theadHeight;
 
 			//実績終了日セルから、パネルの高さ・幅を取得
-			var $eoDateCell = $rightTbody.find('[id="' + Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.eoDate)) + '[' + id + ']"]');
+			var eoDate = Dates.parseYyyyHmmHdd(item.eoDate);
+			var eoYySmmSdd = Dates.formatYySmmSdd(eoDate);
+			var $eoDateCell = $rightTbody.find('[id="' + eoYySmmSdd + '[' + id + ']"]');
+			
+			if ($eoDateCell.length == 0 ){
+				var lastId = $('table.right tbody tr td:last-child')[0].id;
+				$eoDateCell = $rightTbody.find('[id="' + lastId.replace(/\[#\]$/, '') + '[' + id + ']"]');
+			}
+			
 			var h = $eoDateCell[0].offsetHeight - 1;
 			var w = $eoDateCell[0].offsetLeft + $eoDateCell[0].offsetWidth - l - 2;
 

@@ -132,8 +132,8 @@ table.left tr td:nth-child(4) {
 }
 /* 題名 */
 table.left tr td:nth-child(5) {
-	min-width: 12rem;
-	max-width: 12rem;
+	min-width: 18rem;
+	max-width: 18rem;
 }
 /* ステータス */
 table.left tr td:nth-child(6) {
