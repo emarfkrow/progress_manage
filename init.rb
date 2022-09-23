@@ -1,5 +1,5 @@
-Redmine::Plugin.register :progress_manage do
-  name 'Progress Manage plugin'
+Redmine::Plugin.register :redmine_progress_manage do
+  name 'Redmine Progress Manage plugin'
   author 'Author name'
   description 'This is a plugin for Redmine'
   version '0.0.1'

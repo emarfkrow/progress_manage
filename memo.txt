@@ -1,5 +1,5 @@
-ruby bin/rails generate redmine_plugin            ProgressManage
-ruby bin/rails generate redmine_plugin_model      ProgressManage actual_span issue_id:integer bo_days:integer bo_date:date days:integer suspends:integer man_days:integer eo_date:date eo_days:integer
-ruby bin/rails generate redmine_plugin_model      ProgressManage actual_holiday holiday:date
+ruby bin/rails generate redmine_plugin            RedmineProgressManage
+ruby bin/rails generate redmine_plugin_model      RedmineProgressManage actual_span issue_id:integer bo_days:integer bo_date:date days:integer suspends:integer man_days:integer eo_date:date eo_days:integer
+ruby bin/rails generate redmine_plugin_model      RedmineProgressManage actual_holiday holiday:date
 bundle exec rake redmine:plugins:migrate
-ruby bin/rails generate redmine_plugin_controller ProgressManage progress_manage index
+ruby bin/rails generate redmine_plugin_controller RedmineProgressManage progress_manage index
