@@ -61,8 +61,10 @@
 			$('[name^="assignedId"]').html('<option></option>');
 			for (var i in json) {
 				var item = json[i];
-				$('[name^="selAssignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
-				$('[name^="assignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				//$('[name^="selAssignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				//$('[name^="assignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				$('[name^="selAssignedId"]').append('<option value="' + item[0] + '">' + item[4] + ' ' + item[3] + '</option>');
+				$('[name^="assignedId"]').append('<option value="' + item[0] + '">' + item[4] + ' ' + item[3] + '</option>');
 			}
 		});
 
@@ -905,7 +907,7 @@
 	<table class="progress_manage left">
 		<thead>
 			<tr>
-				<th>入替</th>
+				<!--th>入替</th-->
 				<th>id</th>
 				<td>プロジェクト</td>
 				<td>バージョン</td>
@@ -939,7 +941,7 @@
 		</thead>
 		<tbody>
 			<tr id="leftTr[#]">
-				<th><a href="javascript:void(0);" id="upper[#]" class="button">↑</a><a href="javascript:void(0);" id="downer[#]" class="button">↓</a></th>
+				<!--th><a href="javascript:void(0);" id="upper[#]" class="button">↑</a><a href="javascript:void(0);" id="downer[#]" class="button">↓</a></th-->
 				<th title="[[id]]" class="grabbable">[[id]]</th>
 				<td title="[[projectName]]">[[projectName]]</td>
 				<td title="[[version]]">[[version]]</td>
@@ -967,7 +969,7 @@
 		</tbody>
 		<tfoot>
 			<tr>
-				<th>&nbsp;</th>
+				<!--th>&nbsp;</th-->
 				<th>&nbsp;</th>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>

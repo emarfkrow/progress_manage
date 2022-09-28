@@ -49,8 +49,11 @@ class ProgressManageController < ApplicationController
         # }
         # jsonText += "}"
         # render json: JSON.parse(jsonText)
-        users = User.where("language <> ''").all.order(:login)
-        render json: users
+
+        # users = User.where("(type = 'User' and admin = 0) or type = 'Group'").all.order(:type).order(:login).order(:id)
+        # render json: users
+
+        render json: ActiveRecord::Base.connection.execute("select * from users where (type = 'User' and admin = 0) or type = 'Group' order by type, login, id")
     end
 
     #
@@ -64,9 +67,9 @@ class ProgressManageController < ApplicationController
         .joins("LEFT OUTER JOIN versions v on v.id = issues.fixed_version_id")
         .joins(:project)
         .select("issues.*, s.id as actual_span_id, s.bo_days, s.bo_date, s.days, s.suspends, s.man_days, s.eo_date, s.eo_days, projects.name as project_name, v.name as version")
-        .where(["ist.is_closed = :closed", {:closed => false}])
+        .where(["ist.is_closed = :closed and ist.id in (1,2,7,9,4)", {:closed => false}])
         .all
-        .order(:bo_date).order(:start_date).order(:id)
+        .order(:bo_date).order(:start_date).order(:id).order(:project_id)
         .each{|actualSpan|
             if jsonText != "{" then
                 jsonText += ","
