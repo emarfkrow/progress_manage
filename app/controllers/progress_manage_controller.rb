@@ -62,14 +62,14 @@ class ProgressManageController < ApplicationController
     def search
         jsonText = "{"
         Issue
-        .joins("INNER JOIN issue_statuses ist on ist.id = issues.status_id ")
-        .joins("LEFT OUTER JOIN actual_spans s on s.issue_id = issues.id")
-        .joins("LEFT OUTER JOIN versions v on v.id = issues.fixed_version_id")
+        .joins("INNER JOIN issue_statuses    ist on ist.id = issues.status_id ")
+        .joins("LEFT OUTER JOIN actual_spans s   on s.issue_id = issues.id")
+        .joins("LEFT OUTER JOIN versions     v   on v.id = issues.fixed_version_id")
         .joins(:project)
         .select("issues.*, s.id as actual_span_id, s.bo_days, s.bo_date, s.days, s.suspends, s.man_days, s.eo_date, s.eo_days, projects.name as project_name, v.name as version")
-        .where(["ist.is_closed = :closed and ist.id in (1,2,7,9,4)", {:closed => false}])
+        .where(["issues.tracker_id != 3 and ist.is_closed = :closed and ist.id in (1,2,4,7,9)", {:closed => false}])
         .all
-        .order(:bo_date).order(:start_date).order(:id).order(:project_id)
+        .order(:bo_date).order('ifnull(issues.start_date, "9999-99-99")').order(:project_id).order(:fixed_version_id).order(:id)
         .each{|actualSpan|
             if jsonText != "{" then
                 jsonText += ","
