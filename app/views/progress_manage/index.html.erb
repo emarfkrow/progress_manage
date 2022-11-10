@@ -675,8 +675,12 @@
 				$leftTr.find('[id="eoDate[' + id + ']"]').html(Dates.formatYySmmSdd(Dates.parseYyyyHmmHdd(item.eoDate)));
 				$leftTr.find('[id="eoDays[' + id + ']"]').html(item.eoDays);
 
-				boYmd = Dates.formatYyyyHmmHdd(boDate);
-				eoYmd = Dates.formatYyyyHmmHdd(eoDate);
+				var boYmd = null;
+				var eoYmd = null;
+				if (item.days > 0) {
+					boYmd = Dates.formatYyyyHmmHdd(boDate);
+					eoYmd = Dates.formatYyyyHmmHdd(eoDate);
+				}
 
 				if (notPost != true) {
 					Ajaxize.postJson('./progress_manage/putActualSpan', {
