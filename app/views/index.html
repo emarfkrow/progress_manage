@@ -57,6 +57,15 @@
 			redrawDays(holidays);
 		});
 
+		//プロジェクトプルダウンを設定
+		Ajaxize.getJson('./progress_manage/projects', function(json) {
+			$('[name^="selProjectId"]').html('<option></option>');
+			for (var i in json) {
+				var item = json[i];
+				$('[name^="selProjectId"]').append('<option value="' + item[0] + '">' + item[1] + '</option>');
+			}
+		});
+
 		//非表示のテンプレート行のステータスプルダウンを設定
 		Ajaxize.getJson('./progress_manage/statuses', function(json) {
 			$('[name^="statusId"]').html('');
@@ -71,8 +80,10 @@
 			$('[name^="assignedId"]').html('<option></option>');
 			for (var i in json) {
 				var item = json[i];
-				$('[name^="selAssignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
-				$('[name^="assignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				//$('[name^="selAssignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				//$('[name^="assignedId"]').append('<option value="' + item.id + '">' + item.lastname + ' ' + item.firstname + '</option>');
+				$('[name^="selAssignedId"]').append('<option value="' + item[0] + '">' + item[4] + ' ' + item[3] + '</option>');
+				$('[name^="assignedId"]').append('<option value="' + item[0] + '">' + item[4] + ' ' + item[3] + '</option>');
 			}
 		});
 
@@ -109,6 +120,14 @@
 			//休日データを更新
 			Ajaxize.postJson('./progress_manage/setHolidays', holidays, function(json) {
 			});
+		});
+
+		/**
+		 * プロジェクトフィルタ変更イベント
+		 */
+		$('table.left thead [name="selProjectId"]').on('change', function() {
+			bindRows(data);
+			redrawPanels(data);
 		});
 
 		/**
@@ -477,6 +496,7 @@
 		 *
 		 */
 
+		var projectId = $('[name="selProjectId"]').val();
 		var assignedId = $('[name="selAssignedId"]').val();
 
 		//セル落ち防止で余分にセル化しておく高さ
@@ -489,6 +509,10 @@
 		for (var id in data) {
 
 			var item = data[id];
+
+			if (projectId && item.projectId != projectId) {
+				continue;
+			}
 
 			if (assignedId && item.assignedId != assignedId) {
 				continue;
@@ -919,9 +943,9 @@
 	<table class="progress_manage left">
 		<thead>
 			<tr>
-				<th>入替</th>
+				<!--th>入替</th-->
 				<th>id</th>
-				<td>プロジェクト</td>
+				<td style="white-space: normal;">プロジェクト<select name="selProjectId"></select></td>
 				<td>バージョン</td>
 				<td>題名</td>
 				<td>ステータス</td>
@@ -953,7 +977,7 @@
 		</thead>
 		<tbody>
 			<tr id="leftTr[#]">
-				<th><a href="javascript:void(0);" id="upper[#]" class="button">↑</a><a href="javascript:void(0);" id="downer[#]" class="button">↓</a></th>
+				<!--th><a href="javascript:void(0);" id="upper[#]" class="button">↑</a><a href="javascript:void(0);" id="downer[#]" class="button">↓</a></th-->
 				<th title="[[id]]" class="grabbable">[[id]]</th>
 				<td title="[[projectName]]">[[projectName]]</td>
 				<td title="[[version]]">[[version]]</td>
@@ -981,7 +1005,7 @@
 		</tbody>
 		<tfoot>
 			<tr>
-				<th>&nbsp;</th>
+				<!--th>&nbsp;</th-->
 				<th>&nbsp;</th>
 				<td>&nbsp;</td>
 				<td>&nbsp;</td>

@@ -22,6 +22,13 @@ class ProgressManageController < ApplicationController
     end
 
     #
+    # プロジェクトリスト
+    #
+    def projects
+        render json: ActiveRecord::Base.connection.execute("select * from projects where status = 1 order by id")
+    end
+
+    #
     # ステータスリスト
     #
     def statuses
@@ -76,6 +83,7 @@ class ProgressManageController < ApplicationController
             end
             jsonText += "\"#" + actualSpan.id.to_s + "\":{"
             jsonText += "\"id\":\"#" + actualSpan.id.to_s + "\","
+            jsonText += "\"projectId\":\"" + actualSpan.project_id.to_s + "\","
             jsonText += "\"projectName\":\"" + actualSpan.project_name + "\","
             
             version = ""
