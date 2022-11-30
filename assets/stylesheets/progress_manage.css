@@ -242,6 +242,14 @@ table.right .holiday {
 	background-color: #fee;
 }
 
+table.right .today {
+	background-color: #efe;
+}
+
+table.right .past {
+	background-color: #eee;
+}
+
 table.right .plan {
 	background-color: #eef;
 }

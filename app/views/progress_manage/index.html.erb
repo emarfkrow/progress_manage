@@ -34,7 +34,9 @@
 		$('.progress_manage a.button').button();
 
 		//表示基準日の初期表示
-		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(new Date()));
+		let sysDate = new Date();
+		sysDate.setDate(sysDate.getDate() - 7);
+		$('[name="dispBaseYmd"]').val(Dates.formatYyyyHmmHdd(sysDate));
 
 		//休日設定を表示・横軸（日付）の表示
 		Ajaxize.getJson('./progress_manage/holidays', function(json) {
@@ -407,11 +409,19 @@
 				break;
 			}
 
+			let sysDate = new Date();
+			
 			//休日の背景色
 			var classHoliday = '';
+			if (date < sysDate) {
+				classHoliday = ' class="past"';
+			}
 			var day = date.getDay();
 			if (day == 0 || day == 6 || holidays[Dates.formatYyyyHmmHdd(date)]) {
 				classHoliday = ' class="holiday"';
+			}
+			if (date.getFullYear() == sysDate.getFullYear() && date.getMonth() == sysDate.getMonth() && date.getDate() == sysDate.getDate()) {
+				classHoliday = ' class="today"';
 			}
 
 			//セル文字列に退避
@@ -431,16 +441,26 @@
 	 * 予定期間の背景色設定
 	 */
 	function fillPlan(item) {
-		if (!item.startDate || !item.dueDate) {
+
+		$('table.right tbody [id$="[' + item.id + ']"]').each(function(){
+			$(this).removeClass('plan');
+		});
+
+		if (!item.startDate) {
 			return;
 		}
 		var startDate = Dates.parseYyyyHmmHdd(item.startDate);
-		var dueDate = Dates.parseYyyyHmmHdd(item.dueDate);
+		
+		var dueDate = new Date();
+		if (item.dueDate) {
+			dueDate = Dates.parseYyyyHmmHdd(item.dueDate);
+		}
+		
 		for (var date = startDate; date <= dueDate; date.setDate(date.getDate() + 1)) {
 			var cell = $('table.right tbody [id="' + Dates.formatYySmmSdd(date) + '[' + item.id + ']"]');
-			//if (!cell.hasClass('holiday')) {
-			cell.addClass('plan');
-			//}
+			if (!cell.hasClass('holiday')) {
+				cell.addClass('plan');
+			}
 		}
 	}
 
@@ -918,7 +938,7 @@
 	<form style="position: absolute; right: 6rem; margin-top: -2.5rem;">
 		<div>
 			<label for="dispMonths">表示月数</label>
-			<input type="number" id="dispMonths" name="dispMonths" value="3" style="width: 5rem;" />
+			<input type="number" id="dispMonths" name="dispMonths" value="1" style="width: 5rem;" />
 		</div>
 		<div>
 			<label for="dispBaseYmd">表示基準日</label>
